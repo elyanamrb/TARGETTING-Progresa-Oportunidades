@@ -1,0 +1,5 @@
+"year","correlation","kmo","var_pc1","interpretation","kmo_quality"
+2000,-0.00606954386529633,0.974535891240952,83.913,"Negligible","Marvelous"
+2001,-0.335709502843305,0.858963018495778,30.767,"Moderate","Meritorious"
+2002,0.686851396021905,0.867332998764805,32.477,"Strong","Meritorious"
+2004,0.665866867181976,0.783732620264427,23.71,"Strong","Middling"

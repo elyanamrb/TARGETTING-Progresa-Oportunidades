@@ -1,0 +1,42 @@
+MERGE DIAGNOSTICS REPORT
+========================
+Generated: 20334 
+
+
+1. ENTRY DATA MERGE
+-------------------
+Localities with entry_30 only: 11748 
+Localities with entry_enca only: 6513 
+Localities with both sources: 94388 
+Localities with no entry data: 0 
+
+2. IML MERGE SUCCESS RATES
+---------------------------
+IML 1995 match rate: 78.5 %
+IML 2000 match rate: 80.2 %
+IML 2005 match rate: 77.9 %
+
+3. REGIONAL CLASSIFICATION
+---------------------------
+Localities with region assigned: 109542 
+Localities without region: 3107 
+Number of unique regions: 42 
+
+4. FINAL DATASET SUMMARY
+-------------------------
+Cross-sectional dataset rows: 88363 
+Cross-sectional dataset columns: 33 
+Panel dataset rows: 501501 
+Panel dataset columns: 38 
+
+5. TREATMENT STATUS DISTRIBUTION
+----------------------------------
+
+Oportunidades      Progresa 
+        17162         71201 
+
+6. ENTRY YEAR DISTRIBUTION
+----------------------------
+
+ 1998  1999  2000  2001  2002  2003  2004  2005  2006  2007  2008  2009 
+34233 14652  4893 14481  2942   346  8297  2496  3488   730  1795    10 

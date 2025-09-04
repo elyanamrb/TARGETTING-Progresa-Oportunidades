@@ -1,0 +1,6 @@
+"Test","Estimate","SE"
+"Baseline",-0.41,0.021
+"Wide search range",-0.412,0.021
+"Leave-one-out (mean)",-0.41,0.021
+"Weighted by region size",-0.411,0.023
+"Exclude regions < 100 obs",-0.41,0.021

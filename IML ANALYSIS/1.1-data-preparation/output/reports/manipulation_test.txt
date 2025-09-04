@@ -1,0 +1,7 @@
+MANIPULATION TEST RESULTS
+=========================
+Test statistic: 0.2474636 
+P-value: 0.8045494 
+
+Interpretation:
+No evidence of manipulation at the cutoff (p > 0.05)

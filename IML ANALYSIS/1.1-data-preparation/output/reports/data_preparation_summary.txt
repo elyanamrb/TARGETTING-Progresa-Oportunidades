@@ -1,0 +1,27 @@
+DATA PREPARATION SUMMARY
+========================
+Generated: 20334 
+
+DATASET DIMENSIONS
+------------------
+Original merged dataset: 88363 localities
+RDD analysis dataset: 87079 localities
+Narrow bandwidth sample: 29127 localities
+Wide bandwidth sample: 68836 localities
+
+REGIONAL COVERAGE
+-----------------
+Total regions: 42 
+Regions with valid cutoffs: 41 
+Average localities per region: 2075 
+
+TREATMENT STATUS
+----------------
+Pre-2002 entries: 70666 ( 81.2 %)
+Post-2002 entries: 16413 ( 18.8 %)
+
+CUTOFF STATISTICS
+-----------------
+Mean optimal cutoff: -0.413 
+SD of cutoffs: 0.672 
+Range: -1.292 to 1.392 

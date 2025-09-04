@@ -1,0 +1,7 @@
+"Test","Estimate","SE"
+"Main Result",-0.41,0.021
+"Donut 0.10",-0.136,0.171
+"Donut 0.20",-0.699,0.02
+"BW: CER",-0.396,0.029
+"Kernel: Uniform",-0.414,0.023
+"Polynomial: 2nd",-0.374,0.021
