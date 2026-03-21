@@ -1,0 +1,371 @@
+--- Page 214/284 ---
+
+*/*/*     FASE 3
+*/*       PUNTAJES DE LA REGION 32
+*/*/*     MODELO AA
+
+***metodo de STEPWISE
+
+\SCRIMINANT
+GROUPS=lp98(0 1)
+/VARIABLES=hacina depen ninos noasi1 trab151 ocupj_1 ej esc lengua discap
+piso_1 bao_1 agua_1 aguaba_1 pared_1 luz hectie1 radio estgas tv vhs refri vehi lava licua
+cal_agua tocadisc ventila
+/ANALYSIS ALL
+/SAVE=CLASS
+/METHOD=WILKS
+/FIN= 3.84
+/FOUT= 2.71
+/PRIORS .42 .58
+/HISTORY
+/STATISTICS=BOXM RAW TABLE
+/CLASSIFY=NONMISSING POOLED .
+
+***Modelo
+
+DISCRIMINANT
+/GROUPS=LP98(0 1)
+/VARIABLES= depen ninos trab151 ocupj_1 esc discap
+piso_1 aguaba_1 pared_1 hectie1 radio estgas vhs vehi lava
+cal_agua tocadisc ventila
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS = .42 .58
+/STATISTICS=raw TABLE CROSSVALID
+/CLASSIFY=NONMISSING POOLED .
+
+***Calificación
+
+COMPUTE AADEPEN=-52*DEPEN .
+COMPUTE AANINOS=-18*NINOS .
+COMPUTE AATRAB15 = -75 * TRAB151 .
+COMPUTE AAOCUPJ = 8 * OCUPJ_1 .
+OMPUTE AAESC = 3 * ESC .
+COMPUTE AAPISO = 2 * PISO1.
+COMPUTE AAAGUABA = 3*AGUABA_1 .
+COMPUTE AAPARED = -13 * PARED1.
+COMPUTE AAHECTIE = 1 * HECTIE1 .
+
+IF (DISCAP = 0) AADISCAP = 100 .
+IF (DISCAP = 1) AADISCAP = 78 .
+
+IF (RADIO = 0) AARADIO = 100 .
+IF (RADIO = 1) AARADIO = 93 .
+
+IF (ESTGAS = 0) AAESTGAS = 100.
+IF (ESTGAS = 1) AAESTGAS = 81 .
+
+IF (VHS = 0) AAVHS = 100 .
+IF (VHS = 0) AAVHS = 80 .
+
+IF (VEHI=0) AAVEHI= 100 .
+IF (VEHI=1) AAVEHI= 78 .
+
+IF (LAVA = 0) AALAVA = 100 .
+IF (LAVA = 1) AALAVA = 83 .
+
+IF (CAL_AGUA = 0) AACAL_AG = 100 .
+IF (CAL_AGUA = 1) AACAL_AG = 90 .
+
+IF (TOCADISC = 0) AATOCADI = 100 .
+IF (TOCADISC = 1) AATOCADI = 83 .
+
+IF (VENTILA = 0) AAVENTI = 100 .
+IF (VENTILA = 1) AAVENTI = 85 .
+
+EXECUTE .
+
+        calcular las medias de las variables para imputar a valores perdidos
+
+FREQUENCIES
+VARIABLES= aadepen aaninos aatrab15 aaocupj aaesc aapiso aaaguaba aapared aahectie aadiscap
+aaradio aaestgas aavhs aavehi aalava aacal_ag aatocadi aaventi
+/FORMAT=NOTABLE
+                                                214/284
+
+--- Page 215/284 ---
+
+/STATISTICS=MEAN .
+
+COMPUTE aainput = 0 .
+EXECUTE .
+DO IF (MISSING(aadepen) | MISSING(aaninos) | MISSING(aatrab15) | MISSING(aaocupj) | MISSING(aaesc)
+| MISSING(aapiso) | MISSING(aaaguaba) | MISSING(aapared) | MISSING(aahectie) | MISSING(aadiscap) | MISSING(aaradio)
+| MISSING(aaestgas) | MISSING(aavhs) | MISSING(aavehi) | MISSING (aalava) | MISSING(aacal_ag) | MISSING (aatocadi)
+| MISSING(aaventi) ) .
+RECODE
+aainput (0=1)
+END IF .
+EXECUTE .
+
+***se recodifican los valores perdidos con las medias de las variables
+
+RECODE aadepen (SYSMIS=-107.63) .
+RECODE aaninos (SYSMIS=-21.31) .
+RECODE aatrab15 (SYSMIS = -2.66) .
+RECODE aaocupj (SYSMIS = 0.02) .
+RECODE aaesc (SYSMIS= 10.76) .
+RECODE aapiso (SYSMIS= 3.41) .
+RECODE aaaguaba (SYSMIS= -0.03) .
+RECODE aapared (SYSMIS=-128.32) .
+RECODE aahectie (SYSMIS = 4.37) .
+RECODE aadiscap (SYSMIS = 98.64) .
+RECODE aaradio (SYSMIS=97.39) .
+RECODE aaestgas (SYSMIS = 92.99) .
+RECODE aavhs (SYSMIS = 80.00) .
+RECODE aavehi (SYSMIS=81.98) .
+RECODE aalava (SYSMIS=86.98) .
+RECODE aacal_ag (SYSMIS = 90.37) .
+RECODE aatocadi (SYSMIS=84.48) .
+RECODE aaventi (SYSMIS = 93.16) .
+
+***se hace la calificación
+
+COMPUTE aacalif = aadepen + aaninos + aatrab15 + aaocupj + aaesc + aapiso + aaaguaba + aapared + aahectie
++ aadiscap + aaradio + aaestgas + aavhs + aavehi + aalava + aacal_ag + aatocadi + aaventi .
+EXECUTE .
+
+        se calcula la línea de corte y se obtienen los pobres
+
+***discriminante con la línea de pobreza
+
+DISCRIMINANT
+/GROUPS=LP98(0 1)
+/VARIABLES=aacalif
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS = .42 .58
+/STATISTICS=raw TABLE CROSSVALID
+/CLASSIFY=NONMISSING POOLED .
+
+****se checa el último discriminante
+
+USE ALL.
+COMPUTE filter_$=(dis_1 = 0).
+VARIABLE LABEL filter_$ 'dis_1 = 0 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+VARIABLES=aacalif
+/FORMAT=NOTABLE
+/STATISTICS=MINIMUM .
+
+USE ALL.
+COMPUTE filter_$=(dis_1 = 1).
+VARIABLE LABEL filter_$ 'dis_1 = 1 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+*ECUTE
+
+FREQUENCIES
+VARIABLES=aacalif
+/FORMAT=NOTABLE
+/STATISTICS= MAXIMUM .
+
+--- Page 216/284 ---
+
+FILTER OFF.
+USE ALL.
+
+EXECUTE .
+
+***filtros
+
+OMPUTE VIEJITOS = 0 .
+IF ((ej < 25 & TOTPER < 5) | (ej > 65 & ej < 98 & TOTPER < 3)) VIEJITOS = -100 .
+IF (BAO1 = 1 & AGUA1 = 1 & PISO1 = 1) INDISPEN = - 100 .
+RECODE INDISPEN (SYSMIS = 0)
+COMPUTE AACALIF = AACALIF + VIEJITOS + indispen .
+EXECUTE.
+
+***se checa el mínimo y el máximo y se toma el punto intermedio como línea de corte
+
+COMPUTE aapobre = 0 .
+DO IF (aacalif < 609.01) .
+RECODE
+aapobre (0=1)
+END IF .
+EXECUTE .
+
+FREQUENCIES
+VARIABLES = lp98 AAPOBRE .
+
+COMPUTE fecha = 170898 .
+
+COMPUTE FOPO = 10
+
+EXECUTE.
+
+SAVE OUTFILE='e:\PUNTEO\REG_32\reg32j10.sav'
+/COMPRESSED.
+
+AGGREGATE
+/OUTFILE='E:\punteo\REG_32\AGGR.SAV
+/BREAK=entidad mpio local folio
+/aapobr_1 = MEAN(aapobre).
+
+...
+FILE='E:\punteo\REG_32\Aggr.sav'.
+EXECUTE .
+
+RENAME VARIABLES
+aapobr_1 = aapobre .
+
+FILTER OFF.
+USE ALL.
+SELECT IF(aapobre = 1).
+EXECUTE .
+
+SAVE TRANSLATE OUTFILE='E:\punteo\REG_32\topo32_10.dbf'
+/TYPE=DB4 /MAP /REPLA.
+
+--- Page 217/284 ---
+
+SAVE OUTFILE='E:\Fase8\punteo\REG_34\REG34J_25.sav'
+ /COMPRESSED.
+
+********************************************************************************
+*****************************con el archivo de personas************************
+********************************************************************************
+***se llama el archivo regp_# dbf en la región que se va a trabajar y guardar con extensión .sav
+
+GET FILE='E:\Fase8\punteo\calificar\990920\personas.sav' .
+EXECUTE .
+
+FILTER OFF.
+USE ALL.
+SELECT IF(region = 34).
+EXECUTE .
+
+SAVE OUTFILE='E:\Fase8\punteo\REG_34\REG34P_25.sav'
+ /COMPRESSED.
+
+**************RECODIFICACION DE VALORES EXTRAÑOS EN LA DECLARACION DEL INGRESO
+
+RECODE MONTO (98888=SYSMIS) (99999=SYSMIS) (88888=SYSMIS) (9999=SYSMIS) (9888=SYSMIS)
+(8888=SYSMIS) (999=SYSMIS) (99=SYSMIS) (9898=SYSMIS) (98=SYSMIS) (8889=SYSMIS) .
+RECODE MON_ING_ (98888=SYSMIS) (99999=SYSMIS) (88888=SYSMIS) (88885=SYSMIS) (9999=SYSMIS) (9888=SYSMIS)
+(8888=SYSMIS) (999=SYSMIS) (996=SYSMIS) (908=SYSMIS) (904=SYSMIS) (99=SYSMIS) (98=SYSMIS) (9=SYSMIS)
+(8=SYSMIS) .
+RECODE V37 (88888=SYSMIS) (99999=SYSMIS) (900000=SYSMIS) (88888=SYSMIS) (8888=SYSMIS) (9999=SYSMIS)
+(999=SYSMIS) (999=SYSMIS) (99=SYSMIS) (89=SYSMIS) (9=SYSMIS) (8=SYSMIS)
+RECODE PERIODO (8=SYSMIS) (9=SYSMIS) .
+RECODE PER_ING_ (8=SYSMIS) (9=SYSMIS) .
+RECODE V38 (8=SYSMIS) (9=SYSMIS) .
+
+************************INGRESO MENSUAL PERSONAL SIN DISTINCION DE EDAD
+
+IF (PERIODO=1) INTRA=25*MONTO .
+IF (PERIODO=2) INTRA=4*MONTO .
+IF (PERIODO=3) INTRA=2*MONTO .
+IF (PERIODO=4) INTRA=MONTO .
+IF (PERIODO=5) INTRA=MONTO/12 .
+IF (PERIODO=0) INTRA=0 .
+
+IF (PER_ING_=1) OIN1=25*MON_ING_ .
+IF (PER_ING_=2) OIN1=4*MON_ING_ .
+IF (PER_ING_=3) OIN1=2*MON_ING_ .
+IF (PER_ING_=4) OIN1=MON_ING_ .
+IF (PER_ING_=5) OIN1=MON_ING_/12 .
+IF (PER_ING_=0) OIN1=0 .
+
+IF (V38=1) OIN2=25*V37 .
+IF (V38=2) OIN2=4*V37 .
+IF (V38=3) OIN2=2*V37 .
+IF (V38=4) OIN2=V37 .
+IF (V38=5) OIN2=V37/12 .
+IF (V38=0) OIN2=0 .
+
+COMPUTE INMP = INTRA + OIN1 + OIN2 .
+
+IF (SYSMIS(INTRA) & OIN1>= 0 & OIN2>= 0) INMP = OIN1 + OIN2 .
+IF (SYSMIS(OIN1) & INTRA>=0 & OIN2>=0) INMP = INTRA + OIN2 .
+IF (SYSMIS(OIN2) & INTRA>=0 & OIN1>=0) INMP = INTRA + OIN1 .
+IF (SYSMIS(INTRA) & SYSMIS(OIN1) & OIN2>=0) INMP=OIN2 .
+IF (SYSMIS(INTRA) & SYSMIS(OIN2) & OIN1>=0) INMP=OIN1 .
+IF (SYSMIS(OIN1) & SYSMIS(OIN2) & INTRA>=0) INMP=INTRA .
+IF (SYSMIS(INTRA) & (INGRE_A = 11 | SYSMIS(MON_ING_) | SYSMIS(PER_ING_))) INMP = 99999 .
+RECODE INMP (99999=SYSMIS) .
+
+******************INGRESO MENSUAL PERSONAL PARA NIÑOS ENTRE 8 Y 15 AÑOS
+
+217/284
+
+--- Page 218/284 ---
+
+COMPUTE EDAD2 = EDAD .
+
+IF (EDAD2>=8 & EDAD2<=15) EDAD815=1 .
+RECODE EDAD815 (SYSMIS=0) .
+
+IF (EDAD815=1) INM15=INMP .
+RECODE INM15 (SYSMIS=0) .
+
+EXECUTE .
+
+********INGRESO MESUAL DEL HOGAR INGRESO MENSUAL QUE APORTAN AL HOGAR LOS MENORES DE 15 AÑOS
+
+RENAME VARIABLES
+ent_fed = entidad / munici = mpio / locali = local .
+
+compute pyj =1.
+
+AGGREGATE
+/OUTFILE='e:\Fase8\punteo\REG_34\aggreg34.SAV'
+/BREAK=entidad mpio local folio .
+/INMP_1 = SUM(INMP) /INM15_1 = SUM(INM15) / peryjef = first(pyj) .
+
+********************************************************************************
+*************************************con el archivo de hogares***************
+********************************************************************************
+
+***pegar INMP_1 y INM15 del archivo de personas
+
+GET 
+FILE='e:\Fase8\punteo\REG_34\REG34J_25.sav'.
+EXECUTE .
+
+SORT CASES BY
+entidad (A) mpio (A) local (A) folio (A) .
+
+MATCH FILES /FILE=*
+/TABLE='e:\Fase8\punteo\REG_34\aggreg34.sav'
+/BY entidad mpio local folio.
+EXECUTE.
+
+SAVE OUTFILE='e:\Fase8\punteo\REG_34\REG34J_25.sav'
+/COMPRESSED.
+
+COMPUTE INMH15PC = (INMP_1 - INM15_1) / TOTPERS .
+
+***calcular ventiles de ingreso
+***calcular el logaritmo natural del ingreso per cápita
+
+SORT CASES BY
+inmh15pc (A) .
+
+COMPUTE LNIN15PC = LN(INMH15PC+1).
+
+EXECUTE.
+
+***imputación de valores obtenidos en SAS para el análisis de discriminante
+
+***************  PESOS DE LA REGION 34
+
+IF(PISO1=     1      )      PISO_1=        -0.764  .
+IF(PISO1=     2      )      PISO_1=         1.057  .
+IF(PISO1=     3      )      PISO_1=         2.074  .
+IF(PARED1=    1      )      PARED_1=       -0.610  .
+IF(PARED1=    2      )      PARED_1=        0.792  .
+IF(PARED1=    3      )      PARED_1=       -0.876  .
+IF(PARED1=    4      )      PARED_1=       -0.761  .
+IF(PARED1=    5      )      PARED_1=       -0.831  .
+IF(PARED1=    6      )      PARED_1=        0.450  .
+IF(PARED1=    7      )      PARED_1=       -0.773  .
+
+218/284
+

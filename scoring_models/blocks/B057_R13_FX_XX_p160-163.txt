@@ -1,0 +1,235 @@
+--- Page 160/284 ---
+
+Región 13. Mixteca - Costa - Chatina
+Fase 6
+Modelo aa
+
+***discriminante con modelo nuevo
+
+DISCRIMINANT
+/GROUPS=lp98(0 1)
+/VARIABLES= depen ninos ocupj_1 esc piso_1 ej aguaba_1 trab151 noasi1 pared_1
+refri vehi estgas tv
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS .42 .58
+/STATISTICS=RAW TABLE
+/CLASSIFY=NONMISSING POOLED .
+
+***puntajes región 13
+
+COMPUTE AADEPEN = -31*DEPEN .
+COMPUTE AANINOS = -17*NINOS .
+COMPUTE AAOCUPJ = -35*OCUPJ_1 .
+COMPUTE AAESC = 4*ESC .
+COMPUTE AAPISO = 11*PISO_1 .
+COMPUTE AAEDAD = 1*EJ .
+COMPUTE AAAGUABA = 13*AGUABA_1 .
+COMPUTE AATRAB = -31*TRAB151 .
+COMPUTE AANOASI = -26*NOASI1 .
+COMPUTE AAPARED = 11* PARED_1 .
+
+IF (REFRI = 0) AAREFRI = 100 .
+IF (REFRI = 1) AAREFRI = 76 .
+
+IF (VEHI = 0) AAVEHI = 100 .
+IF (VEHI = 1) AAVEHI = 55 .
+
+IF (ESTGAS = 0) AAESTGAS = 100 .
+IF (ESTGAS = 1) AAESTGAS = 76 .
+
+IF (TV = 0) AATV = 100 .
+IF (TV = 1) AATV = 76 .
+
+EXECUTE.
+
+***calcular las medias de las variables para imputar a valores perdidos
+
+FREQUENCIES
+VARIABLES= aadepen aaninos aaocupj aaesc aapiso aaedad aaaguaba aatrab aanoasi aapared
+aarefri aavehi aaestgas aatv
+/FORMAT=NOTABLE
+/STATISTICS=MEAN .
+
+COMPUTE aainput = 0 .
+EXECUTE .
+DO IF (MISSING(aadepen) | MISSING(aaninos) | MISSING (aaocupj)| MISSING (aaesc)| MISSING (aapiso)
+| MISSING(aaedad) | MISSING(aaaguaba) | MISSING (aatrab) | MISSING(aanoasi) | MISSING (aapared)
+| MISSING(aarefri) | MISSING (aavehi)| MISSING(aaestgas) |MISSING(aatv)) .
+RECODE
+aainput (0=1) .
+END IF .
+EXECUTE .
+
+***se recodifican los valores perdidos con las medias de las variables
+
+RECODE aadepen (SYSMIS = -85.4368) .
+RECODE aaninos (SYSMIS = -26.8268) .
+RECODE aaocupj (SYSMIS = 0.2294) .
+RECODE aaesc (SYSMIS = 14.7402) .
+RECODE aapiso (SYSMIS = 0.03216) .
+RECODE aaedad (SYSMIS = 45.9395) .
+RECODE aaaguaba (SYSMIS = 0.01265) .                     160/284
+
+--- Page 161/284 ---
+
+RECODE aatrab (SYSMIS = -1.1176) .
+RECODE aanoasi (SYSMIS = -3.3519) .
+RECODE aapared (SYSMIS = 0.0932) .
+RECODE aarefri (SYSMIS = 80.7750) .
+RECODE aavehi (SYSMIS = 57.4354) .
+ECODE aaestgas (SYSMIS = 84.5393) .
+RECODE aatv (SYSMIS = 87.7776) .
+
+***se hace la calificación
+
+COMPUTE aacalif = aadepen + aaninos + aaocupj + aaesc + aapiso + aadedad +
+aaaguaba + aatrab + aanoasi + aapared + aarefri + aavehi + aaestgas + aatv .
+EXECUTE .
+
+***discriminante con la línea de pobreza
+
+DISCRIMINANT
+/GROUPS=LP98(0 1)
+/VARIABLES=AAcalif
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS .42 .58
+/STATISTICS=raw TABLE crossvalid
+/CLASSIFY=NONMISSING POOLED .
+
+USE ALL.
+COMPUTE filter_$=(dis_2 = 0).
+VARIABLE LABEL filter_$ 'dis_2 = 0 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+VARIABLES=aacalif
+/FORMAT=NOTABLE
+/STATISTICS=MINIMUM .
+
+USE ALL.
+COMPUTE filter_$=(dis_2 = 1).
+VARIABLE LABEL filter_$ 'dis_2 = 1 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+VARIABLES=aacalif
+/FORMAT=NOTABLE
+/STATISTICS= MAXIMUM .
+
+FILTER OFF.
+USE ALL.
+EXECUTE .
+
+***se determina la línea de corte y se obtienen los pobres
+
+IF ((E)< = 24 & totper <= 4) | (E) >= 65 & totper <= 2)) viejitos = -100.
+recode viejitos (SYSMIS = 0) .
+EXECUTE .
+
+COMPUTE aacalif1 = aacalif + viejitos .
+EXECUTE .
+
+COMPUTE AAPOBRE= 0 .
+EXECUTE .
+DO IF (aacalif1< 291.03) .
+RECODE                                                161/284
+
+--- Page 162/284 ---
+
+AAPOBRE (0=1) .
+END IF .
+EXECUTE .
+
+***** Recodificación por vehículo
+
+DO IF (vehi = 0 & AAPOBRE = 1) .
+RECODE
+AAPOBRE (1=0) .
+END IF .
+EXECUTE .
+
+FREQUENCIES
+VARIABLES=lp98 AAPOBRE .
+
+162/284
+
+--- Page 163/284 ---
+
+Región 13. Mixteca - Costa - Chatina
+Fase 6
+Modelo bb
+
+**discriminante con modelo nuevo
+
+DISCRIMINANT
+/GROUPS=lp98(0 1)
+/VARIABLES= depen ninos ocupj_1 esc piso_1 ej aguaba_1 trab151 noasi1 pared_1
+refri vehi estgas tv
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS .41 .59
+/STATISTICS=RAW TABLE
+/CLASSIFY=NONMISSING POOLED .
+
+***puntajes región 13
+
+COMPUTE bbDEPEN = -31*DEPEN .
+COMPUTE bbNINOS = -20*NINOS .
+COMPUTE bbOCUPJ = -41*OCUPJ_1 .
+COMPUTE bbESC = 8*ESC .
+COMPUTE bbPISO = -2*PISO_1 .
+COMPUTE bbEDAD = -1*EJ .
+COMPUTE bbAGUABA = 16*AGUABA_1 .
+COMPUTE bbTRAB = -41*TRAB151 .
+COMPUTE bbNOASI = -29*NOASI1 .
+COMPUTE bbPARED = -30* PARED_1 .
+
+IF (REFRI = 0) bbREFRI = 100 .
+IF (REFRI = 1) bbREFRI = 86 .
+
+IF (VEHI = 0) bbVEHI = 100 .
+(VEHI = 1) bbVEHI = 71 .
+
+IF (ESTGAS = 0) bbESTGAS = 100 .
+IF (ESTGAS = 1) bbESTGAS = 78 .
+
+IF (TV = 0) bbTV = 100 .
+IF (TV = 1) bbTV = 79 .
+
+EXECUTE.
+
+***calcular las medias de las variables para imputar a valores perdidos
+
+FREQUENCIES
+VARIABLES= bbdepen bbninos bbocupj bbesc bbpiso bbedad bbaguaba bbtrab bbnoasi bbpared
+bbrefri bbvehi bbestgas bbtv
+/FORMAT=NOTABLE
+/STATISTICS=MEAN .
+
+COMPUTE bbinput = 0 .
+EXECUTE .
+DO IF (MISSING(bbdepen) | MISSING(bbninos) | MISSING (bbocupj)| MISSING (bbesc)| MISSING (bbpiso)
+| MISSING(bbedad) | MISSING(bbaguaba) | MISSING (bbtrab) | MISSING(bbnoasi) | MISSING (bbpared)
+| MISSING(bbrefri) | MISSING (bbvehi)| MISSING(bbestgas) |MISSING(bbtv)) .
+RECODE
+bbinput (0=1) .
+END IF
+EXECUTE .
+
+***se recodifican los valores perdidos con las medias de las variables
+
+SCODE bbdepen (SYSMIS = -85.1868) .
+RECODE bbninos (SYSMIS = -31.4122) .
+RECODE bbocupj (SYSMIS = 0.1526) .
+RECODE bbesc (SYSMIS = 29.5263) .
+RECODE bbpiso (SYSMIS = -0.0105) .
+RECODE bbedad (SYSMIS = -45.9325) .                163/284
+

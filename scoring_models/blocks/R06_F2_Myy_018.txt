@@ -1,0 +1,218 @@
+Región 6. Montaña
+Fase 2
+Modelo yy
+
+= (DEPEN >= 0 ) xzDEPEN = DEPEN * -17 .
+
+IF (ninos >= 0 ) xzNinos = ninos * -12 .
+
+IF (trab15 >= 0 ) xztrab = trab15 * -23 .
+
+IF (noasi15 >= 0 ) xznoasi = noasi15 * -3 .
+
+IF (hh1 = 1 ) xzhh1 = 100.
+DO IF (hh2=1 ) .
+RECODE
+    xzhh1 (MISSING=78) .
+END IF .
+DO IF (hh3=1 ) .
+RECODE
+    xzhh1 (MISSING=66) .
+END IF .
+DO IF (hh4=1 ) .
+RECODE
+    xzhh1 (MISSING=62) .
+END IF .
+DO IF (hh5=1 ) .
+RECODE
+    xzhh1 (MISSING=60) .
+END IF .
+DO IF (hh1=0 & hh2=0 & hh3=0 & hh4=0 & hh5=0) .
+RECODE
+    xzhh1 (MISSING=58) .
+END IF .
+
+IF (ESCJ1=1 ) xzeduc = 45 .
+D IF (ESCJ2 = 1 ) .
+RECODE
+    xzeduc (MISSING=48) .
+END IF .
+DO IF (ESCJ3= 1 ) .
+RECODE
+    xzeduc (MISSING=55) .
+END IF .
+DO IF (ESCJ1=0 & ESCJ2=0 & ESCJ3=0 ) .
+RECODE
+    xzeduc (MISSING=100) .
+END IF .
+
+if (ocupj0= 1) xzocupj=65.
+if (ocupj1=1 ) xzocupj=64.
+if (ocupj2=1 ) xzocupj=74.
+if (ocupj3_4=1 ) xzocupj=100.
+if (ocupj5_9=1 ) xzocupj=54.
+
+IF (EJ1=1 ) xzEJ = 81 .
+DO IF (EJ2 = 1 ) .
+RECODE
+    xzEJ (MISSING=82) .
+END IF .
+DO IF (EJ3 = 1 ) .
+RECODE
+    xzEJ (MISSING=86) .
+END IF .
+DO IF (EJ4 = 1 ) .
+RECODE
+    xzEJ (MISSING=91) .
+]D IF .
+-O IF (EJ5 = 1) .
+RECODE
+    xzEJ (MISSING=100) .
+END IF .
+
+DO IF (EJ6 = 1) .
+
+--- Page 58/284 ---
+
+RECODE
+    xzEJ (MISSING=89) .
+END IF .
+
+°F (agua = 1 ) xzagua = 89 .
+D IF (agua = 0 ) .
+RECODE
+    xzagua (MISSING=100) .
+END IF .
+
+IF (piso = 1 ) xzpiso = 75 .
+DO IF (piso = 0 ) .
+RECODE
+    xzpiso (MISSING=100) .
+END IF .
+
+IF (radio = 1 ) xzradio = 89 .
+DO IF (radio = 0 ) .
+RECODE
+    xzradio (MISSING=100) .
+END IF .
+
+IF (licua = 1 ) xzlicua = 63 .
+DO IF (licua = 0 ) .
+RECODE
+    xzlicua (MISSING=100) .
+END IF .
+
+IF (tv = 1 ) xztv = 76 .
+DO IF (tv= 0 ) .
+RECODE
+    xztv (MISSING= 100) .
+\D IF .
+
+IF (discap = 1 ) xzdiscap= 93 .
+DO IF (discap= 0 ) .
+RECODE
+    xzdiscap (MISSING=100) .
+END IF .
+
+FREQUENCIES
+    VARIABLES=yyhh1 yyninos yyOCUPJ yypiso yylicua yyEJ yyEDUC
+        yyDEPEN yydiscap yytv yynoasi yytrab .
+
+FREQUENCIES
+    VARIABLES=licua discap radio aguA refri tv tierra lava estgas .
+
+DESCRIPTIVES
+    VARIABLES=yyhh1 yyninos yyOCUPJ yypiso yylicua yyEJ yyEDUC yynoasi
+        yyDEPEN yydiscap yytv yyradio yytrab yyagua
+    /FORMAT=LABELS NOINDEX
+    /STATISTICS=MEAN STDDEV MIN MAX
+    /SORT=MEAN (A) .
+
+DESCRIPTIVES
+    VARIABLES=hacina ninos esc noasi15 trab15
+        DEPEN
+    /FORMAT=LABELS NOINDEX
+    /STATISTICS=MEAN STDDEV MIN MAX
+    /SORT=MEAN (A) .
+
+*******input medias, luego reemplazar yycalif y dis_1
+
+COMPUTE INPUT=0 .
+
+--- Page 59/284 ---
+
+DO if (sysmis(xzDEPEN)) .
+recode xzDEPEN (missing=-36.22) .
+recode INPUT (else= 1) .
+end if .
+
+\O if (sysmis(xzNINOS)) .
+acode xzNINOS (missing=-24.65) .
+recode INPUT (else= 1) .
+end if .
+
+DO if (sysmis(xztrab)) .
+recode xztrab (missing=-6.96) .
+recode INPUT (else= 1) .
+end if .
+
+do if (sysmis(xzNOASI)) .
+recode xzNOASI (missing=-0.53) .
+recode input (else=1) .
+end if .
+
+do if (sysmis(xzHH1)) .
+recode xzHH1 (missing=67.01) .
+recode input (else=1) .
+end if .
+
+do if (sysmis(xzdiscap)) .
+recode xzdiscap (missing=99.53) .
+recode input (else=1) .
+end if .
+
+do if (sysmis(xzOCUPJ)) .
+recode xzOCUPJ (missing=69.03) .
+recode input (else=1) .
+end if .
+
+do if (sysmis(xzEDUC)) .
+recode xzEDUC (missing=52.01) .
+  code input (else=1) .
+end if .
+
+do if (sysmis(xzEJ)) .
+recode xzEJ (missing=89.72) .
+recode input (else=1) .
+end if .
+
+do if (sysmis(xztv)) .
+recode xztv(missing=82.37) .
+recode input (else=1) .
+end if .
+
+do if (sysmis(xzlicua)) .
+recode xzlicua (missing=69.69) .
+recode input (else=1) .
+end if .
+
+do if (sysmis(xzpiso)) .
+recode xzpiso (missing=81.82) .
+recode input (else=1) .
+end if .
+
+do if (sysmis(xzradio)) .
+recode xzradio (missing=92.96) .
+recode input (else=1) .
+end if .
+
+do if (sysmis(xzagua)) .
+recode xzagua(missing=93.17) .
+  code input (else=1) .
+nd if .
+
+COMPUTE xzcalif = xzdepen+xzninos+xzdiscap+xztrab+xznoasi+xzhh1+xzeduc+xzocupj+xzej
+                 +xzlicua+xzradio+xztv +xzpiso + xzagua .
+
+--- Page 60/284 ---
+

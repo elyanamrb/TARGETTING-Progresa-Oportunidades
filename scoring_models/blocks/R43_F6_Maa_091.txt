@@ -1,0 +1,139 @@
+REGIÓN 43. NORTE (JALISCO)
+FASE 6
+MODELO aa
+
+DISCRIMINANT
+/GROUPS=lp98(0 1)
+/VARIABLES= depen ninos vhs ocupj_1 esc lava piso_1 mu15a49 radio aguaba_1 noasii pared_1
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS .41 .59
+/STATISTICS=RAW TABLE
+/CLASSIFY=NONMISSING POOLED .
+
+COMPUTE AADEPEN = -23*DEPEN .
+COMPUTE AANINOS = -35*NINOS .
+COMPUTE AAOCUPJ = -47*OCUPJ_1 .
+COMPUTE AAESC = 6*ESC .
+COMPUTE AAPISO = -6*PISO_1 .
+COMPUTE AAMU15A = 8*MU15A49 .
+COMPUTE AAAGUABA = 8*AGUABA_1 .
+COMPUTE AANOASI = -20*NOASI1 .
+COMPUTE AAHECTTE = 1*HECTIE1 .
+COMPUTE AAPARED = -11*PARED_1 .
+
+IF (VHS = 0) AAVHS = 100 .
+IF (VHS = 1) AAVHS = 81 .
+
+IF (VEHI = 0) AAVEHI = 100 .
+IF (VEHI = 1) AAVEHI = 82 .
+
+IF (LAVA = 0) AALAVA = 100 .
+IF (LAVA = 1) AALAVA = 84 .
+
+- (RADIO = 0) AARADIO = 100 .
+IF (RADIO = 1) AARADIO = 89 .
+
+IF (TV = 0) AATV = 100 .
+IF (TV = 1) AATV = 89 .
+
+EXECUTE.
+
+FREQUENCIES
+VARIABLES= aadepen aaninos aaocupj aaesc aapiso aamu15a aaaguaba aanoasi aahectte
+aapared aavhs aavehi aalava aaradio aatv
+/FORMAT=NOTABLE
+/STATISTICS=MEAN .
+
+COMPUTE aainput = 0 .
+EXECUTE .
+DO IF (MISSING(aadepen) | MISSING(aaninos) | MISSING (aaocupj)| MISSING (aaesc)| MISSING (aapiso)
+| MISSING(aamu15a) | MISSING(aaaguaba) | MISSING (aanoasi) | MISSING(aahectte) | MISSING (aapared)
+| MISSING(aavhs) | MISSING (aavehi)| MISSING(aalava) | MISSING (aaradio)| MISSING(aatv)) .
+RECODE
+aainput (0=1) .
+END IF .
+EXECUTE .
+
+RECODE aadepen (SYSMIS = -41.8929) .
+RECODE aaninos (SYSMIS = -67.5000) .
+RECODE aaocupj (SYSMIS = -37.6000) .
+RECODE aaesc (SYSMIS = 21.4286) .
+RECODE aapiso (SYSMIS = 2.1214) .
+RECODE aamu15a (SYSMIS = 8.5714) .
+RECODE aaaguaba (SYSMIS = 8.9840) .
+ECODE aanoasi (SYSMIS = -4.4286) .
+RECODE aahectte (SYSMIS = 6.5011) .
+RECODE aapared (SYSMIS = 2.7579) .
+RECODE aavhs (SYSMIS = 85.0714) .
+RECODE aavehi (SYSMIS = 83.2857) .
+RECODE aalava (SYSMIS = 85.1429) .
+
+--- Page 257/284 ---
+
+RECODE aaradio (SYSMIS = 96.8571) .
+RECODE aatv (SYSMIS = 96.8571) .
+
+COMPUTE aacalif = aadepen + aaninos + aaocupj + aaesc + aapiso + aamu15a + aaaguaba + aanoasi + aahectie
+                + aapared + aavhs + aavehi + aalava + aaradio + aatv .
+XECUTE .
+
+DISCRIMINANT
+/GROUPS=LP98(0 1)
+/VARIABLES=aacalif
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS .42 .58
+/STATISTICS=raw TABLE crossvalid
+/CLASSIFY=NONMISSING POOLED .
+
+USE ALL.
+COMPUTE filter_$=(dis_2 = 0).
+VARIABLE LABEL filter_$ 'dis_2 = 0 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+  VARIABLES=aacalif
+  /FORMAT=NOTABLE
+  /STATISTICS=MINIMUM .
+
+USE ALL.
+COMPUTE filter_$=(dis_2 = 1).
+VARIABLE LABEL filter_$ 'dis_2 = 1 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+  XECUTE .
+
+FREQUENCIES
+  VARIABLES=aacalif
+  /FORMAT=NOTABLE
+  /STATISTICS= MAXIMUM .
+
+FILTER OFF.
+USE ALL.
+EXECUTE .
+
+IF ((EJ<= 24 & totper <= 4) | (EJ >= 65 & totper <= 2)) viejitos = -100.
+  recode viejitos (SYSMIS = 0) .
+EXECUTE .
+
+COMPUTE aacalif1 = aacalif + viejitos .
+EXECUTE .
+
+COMPUTE aapobre= 0 .
+EXECUTE .
+DO IF (aacalif1< 409.34) .
+RECODE
+  aapobre (0=1) .
+END IF .
+EXECUTE .
+
+FREQUENCIES
+  VARIABLES=lp98 aapobre .
+
+--- Page 258/284 ---
+

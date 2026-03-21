@@ -1,0 +1,287 @@
+Región 10. Costa
+Fase 6
+Modelo aa
+
+DISCRIMINANT
+  /GROUPS=lp98(0 1)
+  /VARIABLES=DEPEN   trab151  EJ esc_bao_1 piso_1
+             discap licua  ventila radio refri    vehi vhs
+  /ANALYSIS ALL
+  /SAVE=CLASS
+  /PRIORS = .41 .59
+  /STATISTICS=MEAN STDDEV UNIVF BOXM RAW CORR GCOV TABLE CROSSVALID
+  /CLASSIFY=NONMISSING POOLED .
+
+******************************************
+***********PUNTAJE **********************
+******************************************
+
+COMPUTE bbDEPEN=-.41*DEPEN.
+COMPUTE bbTRAB15=-.75*TRAB151 .
+COMPUTE bbEDAD=-1*EJ .
+COMPUTE bbESC=6*ESC .
+COMPUTE bbBAO=8*BAO_1 .
+COMPUTE bbPISO=2*PISO_1 .
+
+IF (DISCAP =0) bbDISCAP = 100.
+IF (DISCAP =1) bbDISCAP =67 .
+
+IF (LICUA=0) bbLICUA=100 .
+IF (LICUA=1) bbLICUA=89 .
+
+IF (VENTILA=0) bbVENT=100 .
+IF (VENTILA=1) bbVENT=72 .
+
+IF (RADIO=0) bbRADIO=100 .
+IF (RADIO=1) bbRADIO=86.
+
+IF (REFRI=0) bbREFRI=100 .
+IF (REFRI=1) bbREFRI=81 .
+
+IF (VEHI=0) bbVEHI=100 .
+IF (VEHI=1) bbVEHI=58 .
+
+IF (VHS=0) bbVHS=100 .
+IF (VHS=1) bbVHS=63 .
+
+FREQUENCIES
+  VARIABLES= bbDEPEN bbTRAB15 bbEDAD bbESC bbBAO bbPISO
+             bbDISCAP bbLICUA bbVENT bbRADIO bbREFRI    bbVEHI bbVHS
+  /FORMAT=NOTABLE
+  /STATISTICS=MEAN .
+
+COMPUTE bbinput = 0 .
+DO IF ( MISSING(bbDEPEN) | MISSING(bbTRAB15) | MISSING(bbEDAD) | MISSING(bbESC)
+| MISSING(bbBAO) | MISSING(bbPISO) |
+   missing(bbDISCAP) | missing(bbLICUA) | missing(bbVENT) | missing(bbRADIO) | missing(bbREFRI) |
+   missing(bbVEHI) | missing(bbVHS) ) .
+RECODE bbinput (0=1) .
+END IF .
+EXECUTE .
+
+RECODE bbDEPEN (SYSMIS=-114.4589) .
+RECODE bbTRAB15 (SYSMIS=-1.6518) .
+RECODE bbEDAD (SYSMIS=45.3378).
+RECODE bbESC (SYSMIS=21.8997) .
+RECODE bbBAO (SYSMIS=.1384) .
+RECODE bbPISO (SYSMIS=-.002).
+RECODE bbDISCAP (SYSMIS=98.3028).
+
+--- Page 129/284 ---
+
+RECODE bbLICUA (SYSMIS=93.0787) .
+RECODE bbVENT (SYSMIS=80.4509) .
+RECODE bbRADIO (SYSMIS=92.3275).
+RECODE bbREFRI (SYSMIS=86.8312) .
+RECODE bbVEHI (SYSMIS=59.6883) .
+RECODE bbVHS (SYSMIS=64.5378) .
+
+COMPUTE bbcalif = bbDEPEN + bbTRAB15 + bbEDAD + bbESC + bbBAO +
+    bbDISCAP + bbLICUA + bbVENT + bbRADIO + bbREFRI + bbVEHI + bbVHS .
+EXECUTE .
+
+***discriminante con la línea de pobreza
+
+DISCRIMINANT
+/GROUPS=LP98(0 1)
+/VARIABLES=bbcalif
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS = .41 .59
+/STATISTICS=raw TABLE CROSSVALID
+/CLASSIFY=NONMISSING POOLED .
+
+***checar el número del último discriminante
+
+USE ALL.
+COMPUTE filter_$=(dis_2 = 0).
+VARIABLE LABEL filter_$ 'dis_2 = 0 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+VARIABLES=bbcalif
+/FORMAT=NOTABLE
+/STATISTICS=MINIMUM .
+
+********************
+
+USE ALL.
+COMPUTE filter_$=(dis_2 = 1).
+VARIABLE LABEL filter_$ 'dis_2 = 1 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+VARIABLES=bbcalif
+/FORMAT=NOTABLE
+/STATISTICS= MAXIMUM .
+
+FILTER OFF.
+USE ALL.
+EXECUTE .
+
+***Calificación
+
+IF ((ult_niv=4 | ult_niv = 6 | ult_niv = 7) & seg_soc = 2) maestro = 1 .
+recode maestro (SYSMIS=0)
+
+COMPUTE bbpobre = 0 .
+EXECUTE .
+DO IF (bbcalif< 586.96) .
+RECODE
+    bbpobre (0=1) .
+END IF .
+
+DO IF (bbpobre = 1 & maestro = 1) .
+RECODE
+    BBpobre (1=0) .                                129/284
+
+--- Page 130/284 ---
+
+END IF .
+EXECUTE .
+
+IF (aapobre = 0 & bbpobre = 1) nvo_pob = 1 .
+RECODE nvo_pob (SYSMIS=0) .
+VECUTE .
+
+CROSSTABS
+/TABLES=entidad BY nvo_pob
+/FORMAT= AVALUE TABLES
+/CELLS= COUNT .
+
+
+
+
+FREQUENCIES
+VARIABLES=lp98 bbpobre .
+
+*******************
+
+COMPUTE FECHA1 =060199 .
+COMPUTE FOPOB = 1.
+EXECUTE.
+
+SAVE OUTFILE='g:\4_5y6fas\punteo\REG_3\reg3i.sav'
+/COMPRESSED.
+
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+AGGREGATE
+/OUTFILE='g:\4_5y6fas\punteo\REG_3\AGGR.SAV'
+/BREAK=entidad mpio local folio
+/nvo_po_1 = MEAN(nvo_pob).
+
+GET
+FILE='g:\4_5y6fas\punteo\REG_3\Aggr.sav'.
+EXECUTE .
+
+RENAME VARIABLES
+    nvo_po_1 = nvo_pob .
+
+FILTER OFF.
+USE ALL.
+SELECT IF(nvo_pob = 1).
+EXECUTE .
+
+SAVE TRANSLATE OUTFILE='g:\4_5y6fas\punteo\reg_3\fopo3_1e.dbf'
+/keep = entidad mpio local folio nvo_pob
+/TYPE=DB4 /MAP /REPLA.
+
+
+
+
+***Filtro
+
+IF ((TOTPER<=4 & EJ<=24) | (TOTPER<=2 & EJ>=65)) viejitos=-100 .
+RECODE viejitos (SYSMIS=0) .
+
+COMPUTE bbCALIF1=bbCALIF + viejitos .
+
+EXECUTE .
+
+*línea de corte
+
+COMPUTE bbpobre = 0 .
+DO IF (bbcalif1< 589.37) .
+RECODE bbpobre (0=1) .
+END IF .                                           130/284
+
+--- Page 131/284 ---
+
+IF (VEHI = 0) bbPOBRE = 0 .
+EXECUTE.
+
+FREQUENCIES
+VARIABLES=LP98 bbPOBRE .
+
+COMPUTE FECHA = 981216 .
+
+COMPUTE FOPO = 18 .
+
+EXECUTE.
+SAVE OUTFILE='E:\4_5y6fas\punteo\REG_10\reg10j20.sav'
+/COMPRESSED.
+
+AGGREGATE
+/OUTFILE='E:\4_5y6fas\punteo\REG_10\AGGR.SAV'
+/BREAK=entidad mpio local folio
+/bbpobr_1 = MEAN(bbpobre).
+
+GET
+FILE='E:\4_5y6fas\punteo\REG_10\Aggr.sav'.
+EXECUTE .
+
+RENAME VARIABLES
+    bbpobr_1 = bbpobre .
+
+FILTER OFF.
+USE ALL.
+SELECT IF(bbpobre = 1).
+EXECUTE .
+
+SAVE TRANSLATE OUTFILE='E:\4_5y6fas\punteo\REG_10\fopo10_18.dbf'
+'TYPE=DB4 /MAP /REPLA.
+
+***LOCS
+
+***crear archivo de control
+
+GET
+FILE='E:\4_5y6fas\PUNTEO\REG_10\reg10j_18.sav'.
+EXECUTE .
+
+IF (bbpobre = 1) FOLPOB = 1.
+IF (bbpobre = 1) PERPOB = TOTPER .
+RECODE FOLPOB PERPOB (SYSMIS = 0) .
+
+COMPUTE X = 1 .
+
+EXECUTE.
+
+SAVE OUTFILE='E:\4_5y6fas\punteo\REG_10\reg10j_18.sav'
+/COMPRESSED.
+
+AGGREGATE
+/OUTFILE='E:\4_5y6fas\punteo\reg_10\locs10_18.sav'
+/BREAK=entidad mpio local
+/hoglocal = SUM(x) /totper_1 = SUM(totper) /hogpobre = SUM(folpob) /perpob_1 =
+SUM(perpob) /region = FIRST(region) /fecha = FIRST(fecha) / fopo = FIRST(fopo) .
+
+GET
+FILE='E:\4_5y6fas\punteo\reg_10\locs10_18.sav'.
+EXECUTE .
+
+SAVE TRANSLATE OUTFILE='E:\4_5y6fas\PUNTEO\LOCALS\981216\locs10_18.dbf '
+/TYPE=DB4
+/COMPRESSED.
+
+                                                   131/284
+
+--- Page 132/284 ---
+

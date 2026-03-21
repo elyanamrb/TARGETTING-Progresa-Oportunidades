@@ -1,0 +1,74 @@
+REGIÓN 2. SIERRA
+FASE 8
+MODELO aa
+
+DISCRIMINANT
+/GROUPS=lp98(0 1)
+/VARIABLES=depen ninos noasi1 trab151 hacina esc ocupj_1 estgas ej tv licua
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS= .41 .59
+/STATISTICS=RAW TABLE
+/CLASSIFY=NONMISSING POOLED .
+
+IF (PERCEP = 0) DEPEN = 99 .
+RECODE DEPEN (99 = SYSMIS) .
+
+COMPUTE AADEPEN=-42*DEPEN.
+COMPUTE AANINOS=-.9*NINOS.
+COMPUTE AANOASI=-23*NOASI1.
+COMPUTE AATRAB15=-1*TRAB151.
+COMPUTE AAHACINA=-11*HACINA.
+COMPUTE AAESC=6*ESC.
+COMPUTE AAOCUPJ=-8*OCUPJ_1.
+COMPUTE AAEDAD=1*EJ.
+
+IF (estgas =0) AAestgas = 100.
+IF (estgas =1) AAestgas = 95.
+
+IF (licua =0) AAlicua = 100.
+IF (licua =1) AAlicua = 88.
+
+IF (tv=0) AAtv= 100.
+IF (tv=1) AAtv= 82.
+
+EXECUTE .
+
+FREQUENCIES
+VARIABLES= AAdepen AAninos AAnoasi AAtrab15 AAhacina AAesc AAocupj AAedad AAestgas AAlicua AAtv
+/FORMAT=NOTABLE
+/STATISTICS=MEAN .
+
+COMPUTE AAinput = 0 .
+EXECUTE .
+DO IF (MISSING(AAdepen) | MISSING(AAninos) | MISSING (AAnoasi)
+| MISSING(AAtrab15) | MISSING(AAhacina)| MISSING(AAesc) | MISSING(AAocupj)
+| MISSING(AAedad) | MISSING(AAestgas) | MISSING(AAlicua) | MISSING (AAtv)) .
+
+RECODE
+AAinput (0=1) .
+END IF .
+EXECUTE .
+
+RECODE AAdepen (SYSMIS = -107.49) .
+RECODE AAninos (SYSMIS = -14.71) .
+RECODE AAnoasi (SYSMIS = -3.47) .
+RECODE AAtrab15 (SYSMIS = -0.06) .
+RECODE AAhacina (SYSMIS = -42.26) .
+RECODE AAesc (SYSMIS = 21.30) .
+RECODE AAocupj (SYSMIS = 0.94) .
+RECODE AAedad (SYSMIS = 44.23) .
+RECODE AAestgas (SYSMIS = 96.26) .
+RECODE AAlicua (SYSMIS = 92.96) .
+RECODE AAtv (SYSMIS = 91.67) .
+EXECUTE .
+
+COMPUTE AAcalif = AAdepen + AAninos + AAnoasi + AAtrab15 + AAhacina
++ AAesc + AAocupj + AAedad + AAestgas + AAlicua + AAtv .
+EXECUTE .
+
+DISCRIMINANT                                29/284
+
+--- Page 30/284 ---
+
+***************

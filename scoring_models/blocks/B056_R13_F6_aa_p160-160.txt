@@ -1,0 +1,73 @@
+--- Page 160/284 ---
+
+Región 13. Mixteca - Costa - Chatina
+Fase 6
+Modelo aa
+
+***discriminante con modelo nuevo
+
+DISCRIMINANT
+/GROUPS=lp98(0 1)
+/VARIABLES= depen ninos ocupj_1 esc piso_1 ej aguaba_1 trab151 noasi1 pared_1
+refri vehi estgas tv
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS .42 .58
+/STATISTICS=RAW TABLE
+/CLASSIFY=NONMISSING POOLED .
+
+***puntajes región 13
+
+COMPUTE AADEPEN = -31*DEPEN .
+COMPUTE AANINOS = -17*NINOS .
+COMPUTE AAOCUPJ = -35*OCUPJ_1 .
+COMPUTE AAESC = 4*ESC .
+COMPUTE AAPISO = 11*PISO_1 .
+COMPUTE AAEDAD = 1*EJ .
+COMPUTE AAAGUABA = 13*AGUABA_1 .
+COMPUTE AATRAB = -31*TRAB151 .
+COMPUTE AANOASI = -26*NOASI1 .
+COMPUTE AAPARED = 11* PARED_1 .
+
+IF (REFRI = 0) AAREFRI = 100 .
+IF (REFRI = 1) AAREFRI = 76 .
+
+IF (VEHI = 0) AAVEHI = 100 .
+IF (VEHI = 1) AAVEHI = 55 .
+
+IF (ESTGAS = 0) AAESTGAS = 100 .
+IF (ESTGAS = 1) AAESTGAS = 76 .
+
+IF (TV = 0) AATV = 100 .
+IF (TV = 1) AATV = 76 .
+
+EXECUTE.
+
+***calcular las medias de las variables para imputar a valores perdidos
+
+FREQUENCIES
+VARIABLES= aadepen aaninos aaocupj aaesc aapiso aaedad aaaguaba aatrab aanoasi aapared
+aarefri aavehi aaestgas aatv
+/FORMAT=NOTABLE
+/STATISTICS=MEAN .
+
+COMPUTE aainput = 0 .
+EXECUTE .
+DO IF (MISSING(aadepen) | MISSING(aaninos) | MISSING (aaocupj)| MISSING (aaesc)| MISSING (aapiso)
+| MISSING(aaedad) | MISSING(aaaguaba) | MISSING (aatrab) | MISSING(aanoasi) | MISSING (aapared)
+| MISSING(aarefri) | MISSING (aavehi)| MISSING(aaestgas) |MISSING(aatv)) .
+RECODE
+aainput (0=1) .
+END IF .
+EXECUTE .
+
+***se recodifican los valores perdidos con las medias de las variables
+
+RECODE aadepen (SYSMIS = -85.4368) .
+RECODE aaninos (SYSMIS = -26.8268) .
+RECODE aaocupj (SYSMIS = 0.2294) .
+RECODE aaesc (SYSMIS = 14.7402) .
+RECODE aapiso (SYSMIS = 0.03216) .
+RECODE aaedad (SYSMIS = 45.9395) .
+RECODE aaaguaba (SYSMIS = 0.01265) .                     160/284
+

@@ -1,0 +1,15 @@
+REGION 8       */*/*/*/*/
+*/*/*/           FASE 8            */*/*/*/*/
+*/*/*/       UNICO MODELO          */*/*/*/*/
+
+DISCRIMINANT
+  /GROUPS=lp98(0 1)
+  /VARIABLES=hacina depen ninos ocupj_1 esc mu15a49 trab151 noasi1
+             vhs refri vehi lava licua radio estgas tv discap
+  /ANALYSIS ALL
+  /SAVE=CLASS
+  /PRIORS = .42 .58
+  /STATISTICS=RAW TABLE crossvalid
+  /CLASSIFY=NONMISSING POOLED .
+
+*** Puntajes 

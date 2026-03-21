@@ -1,0 +1,288 @@
+--- Page 34/284 ---
+
+*****************PUNTAJE PARA LA REGION 3 PUNTAJE PARA LA REGION 3 PUNTAJE PARA LA REGION 3
+
+*/*/ CON EL MODELO BB
+
+***Nuevo modelo
+
+DISCRIMINANT
+ /GROUPS=lp98(0 1)
+ /VARIABLES=depen ninos noasi1 trab151 hacina esc ocupj_1 discap piso_1
+ radio tv licua estgas vehi hectie1 ej
+ /ANALYSIS ALL
+ /SAVE=CLASS
+ /PRIORS = .42 .58
+ /STATISTICS=RAW TABLE crossvalid
+ /CLASSIFY=NONMISSING POOLED
+
+GET
+ FILE='e:\4_5y6fas\punteo\REG_3\REG3J_9.sav'.
+EXECUTE .
+
+COMPUTE bbDEPEN=-34*DEPEN.
+COMPUTE bbNINOS=-17*NINOS .
+COMPUTE bbNA15=-7*NOASI1.
+COMPUTE bbT15=-33*TRAB151.
+COMPUTE bbHACINA=-3*HACINA .
+COMPUTE bbESC=7*ESC.
+COMPUTE bbOCUP=2*OCUPJ_1 .
+COMPUTE bbPISO=7*PISO_1.
+COMPUTE bbHECTI=1*HECTIE1 .
+COMPUTE bbEDAD=-1*ej .
+
+IF (DISCAP =0) bbDISCAP = 100.
+IF (DISCAP =1) bbDISCAP = 71 .
+
+IF (RADIO=0) bbRADIO=100 .
+IF (RADIO=1) bbRADIO=87 .
+
+if (TV=0) bbTV = 100.
+IF (TV=1) bbTV =83 .
+
+IF (LICUA=0) bbLICUA= 100.
+IF (LICUA=1) bbLICUA=75 .
+
+IF (ESTGAS=0) bbESTGAS=100 .
+IF (ESTGAS=1) bbESTGAS=93 .
+
+IF (VEHI=0) bbVEHI=100 .
+IF (VEHI=1) bbVEHI=59 .
+EXECUTE.
+
+FREQUENCIES
+  VARIABLES= bbDEPEN bbNINOS bbNA15 bbT15 bbHACINA bbESC bbOCUP bbPISO bbHECTI
+   bbEDAD  bbDISCAP bbRADIO bbTV bbLICUA  bbESTGAS bbVEHI
+  /FORMAT=NOTABLE
+  /STATISTICS=MEAN .
+
+COMPUTE bbinput = 0 .
+EXECUTE .
+DO IF ( MISSING(bbDEPEN) | MISSING(bbNINOS) | MISSING(bbNA15)
+| MISSING(bbT15) | MISSING(bbHACINA) | MISSING(bbESC)
+|  MISSING(bbOCUP) | MISSING(bbPISO) | missing(bbHECTI) | missing(bbEDAD) |
+   missing(bbDISCAP) | missing(bbRADIO) | MISSING(bbTV) |  MISSING(bbLICUA) |
+   missing(bbESTGAS) | missing(bbVEHI) ) .
+RECODE
+  bbinput  (0=1) .
+END IF .
+EXECUTE .
+
+RECODE bbDEPEN (SYSMIS=-92.8553) .
+
+--- Page 35/284 ---
+
+RECODE bbNINOS (SYSMIS=-27.6437) .
+RECODE bbNA15 (SYSMIS=-.8629).
+RECODE bbT15 (SYSMIS=-1.5476).
+RECODE bbHACINA (SYSMIS=9.2162).
+RECODE bbESC (SYSMIS=26.9878).
+RECODE bbOCUP (SYSMIS=.7894) .
+RECODE bbPISO (SYSMIS=.4339).
+RECODE bbHECTI (SYSMIS=3.0758).
+RECODE bbEDAD (SYSMIS=45.4000).
+RECODE bbDISCAP (SYSMIS=98.8230) .
+RECODE bbRADIO (SYSMIS=95.7839).
+RECODE bbTV (SYSMIS=93.4224).
+RECODE bbLICUA (SYSMIS=88.3280).
+RECODE bbESTGAS (SYSMIS=96.9168) .
+RECODE bbVEHI (SYSMIS=63.5471) .
+
+
+COMPUTE bbcalif = bbDEPEN + bbNINOS + bbNA15 + bbT15 + bbHACINA + bbESC + bbOCUP + bbPISO +
+        bbHECTI + bbEDAD + bbDISCAP + bbRADIO + bbTV + bbLICUA  + bbESTGAS + bbVEHI .
+EXECUTE.
+
+****
+
+DISCRIMINANT
+ /GROUPS=LP98(0 1)
+ /VARIABLES=bbcalif
+ /ANALYSIS ALL
+ /SAVE=CLASS
+ /PRIORS = .41 .59
+ /STATISTICS=raw TABLE crossvalid
+ /CLASSIFY=NONMISSING POOLED .
+
+***checar el número del discriminante
+
+USE ALL.
+COMPUTE filter_$=(dis_2 = 0).
+VARIABLE LABEL filter_$ 'dis_2 = 0 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+  VARIABLES=bbcalif /FORMAT=NOTABLE
+  /STATISTICS=MINIMUM .
+
+USE ALL.
+COMPUTE filter_$=(dis_2 = 1).
+VARIABLE LABEL filter_$ 'dis_2 = 1 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+  VARIABLES=bbcalif /FORMAT=NOTABLE
+  /STATISTICS= MAXIMUM .
+
+FILTER OFF.
+USE ALL.
+EXECUTE .
+
+*****************
+
+IF ((ult_niv=4 | ult_niv = 6 | ult_niv = 7) & seg_soc = 2) maestro = 1 .
+recode maestro (SYSMIS=0)
+
+COMPUTE bbpobre = 0 .
+EXECUTE .
+
+--- Page 36/284 ---
+
+DO IF (bbcalif< 543.515) .
+RECODE
+ bbpobre (0=1) .
+END IF .
+
+DO IF (bbpobre = 1 &  maestro = 1) .
+RECODE
+  BBpobre  (1=0) .
+END IF .
+EXECUTE .
+
+IF (aapobre = 0 & bbpobre = 1) nvo_pob = 1
+RECODE nvo_pob (SYSMIS=0)
+EXECUTE .
+
+FREQUENCIES
+ VARIABLES=lp98 bbpobre bbpobre
+
+*************FILTROS DE SEGUNDA FASE
+
+IF ( (ej<25 & TOTPER<5) | (ej>64 & totper<3) ) viejitos=.100 .
+RECODE viejitos (SYSMIS=0)
+execute .
+
+COMPUTE bbCALIF=bbCALIF + viejitos .
+
+COMPUTE bbpobre = 0 .
+EXECUTE.
+DO IF (bbcalif< 507.1) .
+RECODE
+bbpobre (0=1) .
+END IF .
+
+DO IF (vehi = 0 & bbpobre = 1) .
+RECODE
+ bbpobre  (1=0) .
+END IF .
+EXECUTE .
+
+FREQUENCIES
+ VARIABLES= lp98 bbPOBRE.
+
+
+COMPUTE fecha = 181298 .
+COMPUTE FOPO =20.
+EXECUTE.
+
+SAVE OUTFILE='e:\4_5y6fas\punteo\REG_3\REG3Jf6.sav'
+ /COMPRESSED.
+
+AGGREGATE
+ /OUTFILE='e:\4_5y6fas\punteo\REG_3\AGGR.SAV'
+ /BREAK=entidad mpio local folio
+ /bbpobr_1 = MEAN(bbpobre).
+
+--- Page 37/284 ---
+
+GET
+   FILE='e:\4_5y6fas\punteo\REG_3\Aggr.sav'.
+EXECUTE .
+
+RENAME VARIABLES
+   bbpobr_1 = bbpobre .
+
+FILTER OFF.
+USE ALL.
+SELECT IF(bbpobre = 1).
+EXECUTE .
+
+SAVE TRANSLATE OUTFILE='e:\4_5y6fas\punteo\ENTREGAS\981218\Fopo3_20.dbf'
+  /TYPE=DB4 /MAP /REPLA.
+
+--- Page 38/284 ---
+
+****************PUNTAJE PARA LA REGION 3 PUNTAJE PARA LA REGION 3 PUNTAJE PARA LA REGION 3
+
+/*/*/*/ CON EL MODELO AA */*/*/*/*
+
+***Nuevo modelo
+
+DISCRIMINANT
+  /GROUPS=lp98(0 1)
+  /VARIABLES=depen ninos noasi1 trab151 hacina esc ocupj_1 discap piso_1
+  radio tv licua estgas vehi hectie1 ej
+  /ANALYSIS ALL
+  /SAVE=CLASS
+  /PRIORS = .42 .58
+  /STATISTICS=RAW TABLE crossvalid
+  /CLASSIFY=NONMISSING POOLED .
+
+GET
+   FILE='e:\4_5y6fas\punteo\REG_3\REG3J_9.sav'.
+EXECUTE .
+
+COMPUTE AADEPEN=-35*DEPEN.
+COMPUTE AANINOS=-11*NINOS .
+COMPUTE AANA15=-18*NOASI1.
+COMPUTE AAT15=-14*TRAB151 .
+COMPUTE AAHACINA=-2*HACINA .
+COMPUTE AAESC=-6*ESC .
+COMPUTE AAOCUP=23*OCUPJ_1 .
+COMPUTE AAPISO=11*PISO_1 .
+COMPUTE AAHECTI=2*HECTIE1 .
+COMPUTE AAEDAD=1*ej .
+
+IF (DISCAP =0) AADISCAP = 100.
+IF (DISCAP =1) AADISCAP = 87 .
+
+IF (RADIO=0) AARADIO=100 .
+IF (RADIO=1) AARADIO=94 .
+
+if (TV=0) AATV = 100.
+IF (TV=1) AATV =79 .
+
+IF (LICUA=0) AALICUA= 100.
+IF (LICUA=1) AALICUA=77 .
+
+IF (ESTGAS=0) AAESTGAS=100 .
+IF (ESTGAS=1) AAESTGAS=70 .
+
+IF (VEHI=0) AAVEHI=100 .
+IF (VEHI=1) AAVEHI=68 .
+
+EXECUTE.
+
+FREQUENCIES
+   VARIABLES= AADEPEN AANINOS AANA15 AAT15 AAHACINA AAESC AAOCUP AAPISO AAHECTI
+   AAEDAD AADISCAP AARADIO AATV AALICUA AAESTGAS AAVEHI
+   /FORMAT=NOTABLE
+   /STATISTICS=MEAN .
+
+COMPUTE aainput = 0 .
+EXECUTE .
+DO IF ( MISSING(AADEPEN) | MISSING(AANINOS) | MISSING(AANA15)
+  | MISSING(AAT15) | MISSING(AAHACINA) | MISSING(AAESC)
+  | MISSING(AAOCUP) | MISSING(AAPISO) | missing(AAHECTI) | mssing(AAEDAD) |
+  'missing(AADISCAP) | missing(AARADIO) | MISSING(AATV) | MISSING(AALICUA) |
+  missing(AAESTGAS) | missing(AAVEHI) ) .
+RECODE
+   aainput (0=1) .
+END IF .
+

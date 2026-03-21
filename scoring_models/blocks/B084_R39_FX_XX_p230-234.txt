@@ -1,0 +1,301 @@
+--- Page 230/284 ---
+
+Región 39. Frontera Sur
+Fase 3
+
+***puntajes región 39
+
+**método de STEPWISE
+
+DISCRIMINANT
+/GROUPS=lp98(0 1)
+/VARIABLES=hacina depen ninos noasi1 trab151 ocupj_1 ej esc lengua discap
+piso_1 bao_1 agua_1 aguaba_1 pared_1 luz hectie1 radio estgas tv vhs refri vehi lava licua
+cal_agua tocadisc ventila
+/ANALYSIS ALL
+/SAVE=CLASS
+/METHOD=WILKS
+/FIN= 3.84
+/FOUT= 2.71
+/PRIORS .42 .58
+/HISTORY
+/STATISTICS=BOXM RAW TABLE
+/CLASSIFY=NONMISSING POOLED .
+
+REGRESSION
+/MISSING LISTWISE
+/STATISTICS COEFF OUTS R ANOVA
+/CRITERIA=PIN(.05) POUT(.10)
+/NOORIGIN
+/DEPENDENT lp98
+/METHOD=ENTER hacina depen ninos noasi1 trab151 ocupj_1 ej esc lengua discap
+piso_1 bao_1 agua_1 aguaba_1 pared_1 luz hectie1 radio estgas tv vhs refri vehi lava licua
+cal_agua tocadisc ventila
+/SAVE PRED .
+
+**Modelo
+
+DISCRIMINANT
+/GROUPS=LP98(0 1)
+/VARIABLES= hacina depen ninos noasi1 trab151 esc
+bao_1 agua_1 pared_1 estgas vhs refri vehi lava
+tocadisc
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS = .42 .58
+/STATISTICS=raw TABLE CROSSVALID
+/CLASSIFY=NONMISSING POOLED .
+
+***Calificación
+
+COMPUTE AAHACINA = -9 * HACINA .
+COMPUTE AADEPEN= -28*DEPEN .
+COMPUTE AANINOS= -16*NINOS .
+COMPUTE AANOASI = -73 * NOASI1 .
+COMPUTE AATRAB15 = -45 * TRAB15 .
+COMPUTE AAESC = 2 * ESC .
+COMPUTE AABAO = -7 * BAO_1 .
+COMPUTE AAAGUA = -22 * AGUA_1.
+COMPUTE AAPARED = -40 * PARED_1 .
+
+IF (ESTGAS = 0) AAESTGAS = 100 .
+IF (ESTGAS = 1) AAESTGAS = 79 .
+
+IF (VHS = 0) AAVHS = 100 .
+   (VHS = 1) AAVHS = 65 .
+
+IF (REFRI = 0) AAREFRI = 100 .
+IF (REFRI = 1) AAREFRI = 69 .
+
+IF (VEHI=0) AAVEHI= 100 .
+
+--- Page 231/284 ---
+
+IF (VEHI=1) AAVEHI= 50 .
+
+IF (LAVA = 0) AALAVA = 100 .
+IF (LAVA = 1) AALAVA = 78 .
+
+IF (TOCADISC = 0) AATOCADI = 100 .
+IF (TOCADISC = 1) AATOCADI = 65 .
+
+EXECUTE .
+
+***calcular las medias de las variables para imputar a valores perdidos
+
+FREQUENCIES
+VARIABLES= aahacina aadepen aaninos aanoasi aatrab15 aaesc aabao
+aaagua aapared aaestgas aavhs aarefri aavehi aalava aatocadi
+/FORMAT=NOTABLE
+/STATISTICS=MEAN .
+
+COMPUTE aainput = 0 .
+DO IF (MISSING(aahacina) |MISSING(aadepen) | MISSING(aaninos) | MISSING(aanoasi) | MISSING(aatrab15)
+| MISSING(aaesc) | MISSING(aabao) | MISSING(aaagua) | MISSING(aapared)
+| MISSING(aaestgas) |MISSING(aavhs) | MISSING (aarefri) | MISSING(aavehi) | MISSING (aalava) | MISSING (aatocadi)) .
+RECODE
+aainput (0=1) .
+END IF .
+EXECUTE .
+
+***se recodifican los valores perdidos con las medias de las variables
+
+RECODE aahacina (SYSMIS = -44.39) .
+RECODE aadepen (SYSMIS=-62.43) .
+RECODE aaninos (SYSMIS =-36.76) .
+RECODE aanoasi (SYSMIS = -13.08) .
+RECODE aatrab15 (SYSMIS = -3.65) .
+RECODE aaesc (SYSMIS=3.73) .
+RECODE aabao (SYSMIS = -3.72) .
+RECODE aaagua (SYSMIS=14.23) .
+RECODE aapared (SYSMIS=-22.17) .
+RECODE aaestgas (SYSMIS=84.11) .
+RECODE aavhs (SYSMIS=65.00) .
+RECODE aarefri (SYSMIS = 76.54) .
+RECODE aavehi (SYSMIS=51.35) .
+RECODE aalava (SYSMIS=78.00) .
+RECODE aatocadi (SYSMIS = 65.95) .
+
+***se hace la calificación
+
+COMPUTE aacalif = aahacina + aadepen + aaninos + aanoasi + aatrab15 + aaesc + aabao + aaagua +
+aapared + aaestgas + aavhs + aarefri + aavehi + aalava + aatocadi .
+
+EXECUTE .
+
+***se calcula la línea de corte y se obtienen los pobres
+
+***discriminante con la línea de pobreza
+
+DISCRIMINANT
+/GROUPS=LP98(0 1)
+/VARIABLES=aacalif
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS = .42 .58
+/STATISTICS=raw TABLE CROSSVALID
+/CLASSIFY=NONMISSING POOLED .
+
+***se checa el último discriminante
+
+USE ALL.
+COMPUTE filter_$=(dis_1 = 0).
+VARIABLE LABEL filter_$ 'dis_1 = 0 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+
+--- Page 232/284 ---
+
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+VARIABLES=aacalif
+/FORMAT=NOTABLE
+/STATISTICS=MINIMUM .
+
+USE ALL.
+COMPUTE filter_$=(dis_1 = 1).
+VARIABLE LABEL filter_$ 'dis_1 = 1 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+VARIABLES=aacalif
+/FORMAT=NOTABLE
+/STATISTICS= MAXIMUM .
+
+FILTER OFF.
+USE ALL.
+EXECUTE .
+
+***filtros
+
+COMPUTE VIEJITOS = 0 .
+IF ((ej < 25 & TOTPER < 5) | (ej > 65 & ej < 98 & TOTPER < 3)) VIEJITOS = -100 .
+
+COMPUTE AACALIF = AACALIF + VIEJITOS .
+
+EXECUTE.
+
+***se checa el mínimo y el máximo y se toma el punto intermedio como línea de corte
+
+COMPUTE aapobre = 0 .
+DO IF (aacalif < 263.10) .
+RECODE
+aapobre (0=1) .
+END IF .
+EXECUTE .
+
+IF (VEHI = 0) AAPOBRE = 0 .
+EXECUTE.
+
+FREQUENCIES
+VARIABLES = lp98 AAPOBRE .
+
+COMPUTE FECHA = 60898 .
+
+COMPUTE FOLIO = 9 .
+
+EXECUTE.
+
+SAVE OUTFILE='E:\punteo\REG_39\reg39j_9.sav'
+/COMPRESSED.
+
+AGGREGATE
+/OUTFILE='E:\punteo\REG_39\AGGR.SAV'
+/BREAK=entidad mpio local folio
+/aapobr_1 = MEAN(aapobre).
+
+GET
+FILE='E:\punteo\REG_39\Aggr.sav'.
+EXECUTE .
+
+RENAME VARIABLES
+
+--- Page 233/284 ---
+
+aapobr_1 = aapobre .
+
+FILTER OFF.
+USE ALL.
+SELECT IF(aapobre = 1).
+EXECUTE .
+
+SAVE TRANSLATE OUTFILE='E:\punteo\REG_39\fopo39_9.dbf'
+/TYPE=DB4 /MAP /REPLA.
+
+--- Page 234/284 ---
+
+Región 39. Frontera Sur
+Fase 6
+
+***puntajes región 39
+
+**método de STEPWISE
+
+DISCRIMINANT
+/GROUPS=lp98(0 1)
+/VARIABLES=hacina depen ninos noasi1 trab151 ocupj_1 ej esc lengua discap
+piso_1 bao_1 agua_1 aguaba_1 pared_1 luz hectie1 radio estgas tv vhs refri vehi lava licua
+cal_agua tocadisc ventila
+/ANALYSIS ALL
+/SAVE=CLASS
+/METHOD=WILKS
+/FIN= 3.84
+/FOUT= 2.71
+/PRIORS .42 .58
+/HISTORY
+/STATISTICS=BOXM RAW TABLE
+/CLASSIFY=NONMISSING POOLED .
+
+REGRESSION
+/MISSING LISTWISE
+/STATISTICS COEFF OUTS R ANOVA
+/CRITERIA=PIN(.05) POUT(.10)
+/NOORIGIN
+/DEPENDENT lp98
+/METHOD=ENTER hacina depen ninos noasi1 trab151 ocupj_1 ej esc lengua discap
+piso_1 bao_1 agua_1 aguaba_1 pared_1 luz hectie1 radio estgas tv vhs refri vehi lava licua
+cal_agua tocadisc ventila
+/SAVE PRED .
+
+**Modelo
+
+DISCRIMINANT
+/GROUPS=LP98(0 1)
+/VARIABLES= hacina depen ninos noasi1 trab151 esc
+bao_1 agua_1 pared_1 estgas vhs refri vehi lava
+tocadisc
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS = .42 .58
+/STATISTICS=raw TABLE CROSSVALID
+/CLASSIFY=NONMISSING POOLED .
+
+***Calificación
+
+COMPUTE AAHACINA = -9 * HACINA .
+COMPUTE AADEPEN=-28*DEPEN .
+COMPUTE AANINOS=-16*NINOS .
+COMPUTE AANOASI = -73 * NOASI1 .
+COMPUTE AATRAB15 = -45 * TRAB15 .
+COMPUTE AAESC = 2 * ESC .
+COMPUTE AABAO = -7 * BAO_1 .
+COMPUTE AAAGUA = -32 * AGUA_1.
+COMPUTE AAPARED = -40 * PARED_1 .
+
+IF (ESTGAS = 0) AAESTGAS = 100 .
+IF (ESTGAS = 1) AAESTGAS = 79 .
+
+IF (VHS = 0) AAVHS = 100 .
+IF (VHS = 1) AAVHS = 65 .
+
+IF (REFRI = 0) AAREFRI = 100 .
+IF (REFRI = 1) AAREFRI = 69 .
+
+IF (VEHI=0) AAVEHI= 100 .
+IF (VEHI=1) AAVEHI= 50 .
+

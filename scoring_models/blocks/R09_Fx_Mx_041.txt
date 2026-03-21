@@ -1,0 +1,139 @@
+región 9
+
+***discriminante con modelo nuevo
+
+COMPUTE AADEPEN=-28*DEPEN .
+COMPUTE AANINOS=-24*NINOS .
+COMPUTE AANOASI1=-32*NOASI1 .
+COMPUTE AATRAB15 = -52*TRAB151 .
+COMPUTE AAHACINA = -10*HACINA .
+COMPUTE AAESC = 6*ESC .
+COMPUTE AAEJ = 2*EJ .
+COMPUTE AAPISO = 7*PISO_1 .
+COMPUTE AAAGUAB = 4*AGUABA_1 .
+
+IF (DISCAP = 0) AADISCAP = 100 .
+IF (DISCAP = 1) AADISCAP = 91 .
+
+IF (ESTGAS = 0) AAESTGAS = 100 .
+IF (ESTGAS = 1) AAESTGAS = 62 .
+
+IF (ventila = 0) AAVENTIL = 100 .
+IF (ventila = 1) AAVENTIL =89 .
+
+IF (LENGUA = 0) AALENGUA = 100 .
+IF (LENGUA = 1) AALENGUA = 93 .
+
+IF (VEHI = 0) AAVEHI = 100 .
+IF (VEHI = 1) AAVEHI = 68 .
+
+EXECUTE.
+
+***calcular las medias de las variables para imputar a valores perdidos
+
+FREQUENCIES
+VARIABLES= aadepen aaninos aanoasi1 aatrab15 aahacina aaesc
+aaej aapiso aaaguab aadiscap aaestgas aaventil aalengua aavehi
+/FORMAT=NOTABLE
+/STATISTICS=MEAN .
+
+COMPUTE aainput = 0 .
+EXECUTE .
+DO IF (MISSING(aadepen) | MISSING(aaninos) | MISSING(aanoasi1) | MISSING (aatrab15)
+| MISSING(aahacina) | MISSING(aaesc) | MISSING (aaej)
+| MISSING(aapiso) |MISSING(aaaguab) | MISSING(aadiscap) |
+MISSING(aaestgas) |MISSING(aaventil) |MISSING(aalengua) | MISSING(aavehi)) .
+RECODE
+  aainput (0=1) .
+END IF .
+EXECUTE .
+
+***se recodifican los valores perdidos con las medias de las variables
+
+RECODE aadepen (SYSMIS=-57.5078) .
+RECODE aaninos (SYSMIS=-24.5632) .
+RECODE aanoasi1 (SYSMIS=-1.6265) .
+RECODE aatrab15 (SYSMIS=-0.5898) .
+RECODE aahacina (SYSMIS=-28.1148) .
+RECODE aaesc (SYSMIS=29.5668) .
+RECODE aaej (SYSMIS=94.6449) .
+RECODE aapiso (SYSMIS=3.0430) .
+RECODE aaaguab (SYSMIS=-1.0336) .
+RECODE aadiscap (SYSMIS=99.3827) .
+RECODE aaestgas (SYSMIS=88.3870) .
+RECODE aaventil (SYSMIS=94.8083) .
+RECODE aalengua (SYSMIS=99.2405) .
+RECODE aavehi (SYSMIS=72.9365) .
+
+--- Page 120/284 ---
+
+***se hace la calificación
+
+COMPUTE aacalif = aadepen + aaninos + aanoasi1+ aatrab15 + aahacina +
+  aaesc + aaej + aapiso + aaaguab + aadiscap + aaestgas + aaventil +
+  + aalengua + aavehi .
+XECUTE .
+
+***discriminante con la linea de pobreza
+
+DISCRIMINANT
+/GROUPS=LP98(0 1)
+/VARIABLES=aacalif
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS .42 .58
+/STATISTICS=MEAN STDDEV UNIVF BOXM RAW CORR COV GCOV TABLE CROSSVALID
+/CLASSIFY=NONMISSING POOLED .
+
+USE ALL.
+COMPUTE filter_$=(dis_2 = 0).
+VARIABLE LABEL filter_$ 'dis_2= 0 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+  VARIABLES=aacalif
+  /FORMAT=NOTABLE
+  /STATISTICS=MINIMUM .
+
+USE ALL.
+COMPUTE filter_$=(dis_2 = 1).
+VARIABLE LABEL filter_$ 'dis_2 = 1 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+  VARIABLES=aacalif
+  /FORMAT=NOTABLE
+  /STATISTICS= MAXIMUM .
+
+FILTER OFF.
+USE ALL.
+EXECUTE .
+
+if ((ej<25 & TOTPER<5) | (ej>65 & TOTPER <3)) viejitos=-100 .
+recode viejitos (sysmis=0) .
+execute .
+
+COMPUTE AAcalif1 = AAcalif + viejitos.
+EXECUTE .
+
+***se determina la linea de corte y se obtienen los pobres
+
+COMPUTE aapobre = 0 .
+EXECUTE .
+DO IF (aacalif1 < 451.69) .
+RECODE
+  aapobre (0=1) .
+END IF .
+XECUTE .
+
+FREQUENCIES
+  VARIABLES=AAPOBRE lp98 .
+
+--- Page 121/284 ---
+

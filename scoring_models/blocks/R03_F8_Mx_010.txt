@@ -1,0 +1,247 @@
+PUNTAJE PARA LA REGION 3
+
+DISCRIMINANT
+/GROUPS=lp98(0 1)
+/VARIABLES=depen ninos noasi1 trab151 hacina esc ocupj_1 discap piso_1
+radio tv licua estgas vehi hectie1 ej
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS = .42 .58
+/STATISTICS=RAW TABLE crossvalid
+/CLASSIFY=NONMISSING POOLED .
+
+GET
+FILE='f:\fase8\punteo\REG_3\REG3J_1.sav'.
+EXECUTE .
+
+***Calificacion
+
+IF (PERCEP = 0) DEPEN = 99.
+RECODE DEPEN (99 = SYSMIS) .
+
+COMPUTE AADEPEN=-35*DEPEN.
+COMPUTE AANINOS=-11*NINOS .
+COMPUTE AANA15=-18*NOASI1.
+COMPUTE AAT15=-14*TRAB151 .
+COMPUTE AAHACINA=-2*HACINA .
+COMPUTE AAESC=6*ESC.
+COMPUTE AAOCUP=23*OCUPJ_1 .
+COMPUTE AAPISO=11*PISO_1 .
+COMPUTE AAHECTI=2*HECTIE1 .
+COMPUTE AAEDAD=1*ej .
+
+IF (DISCAP =0) AADISCAP = 100.
+IF (DISCAP =1) AADISCAP = 87 .
+
+IF (RADIO=0) AARADIO=100 .
+IF (RADIO=1) AARADIO=94 .
+
+if (TV=0) AATV = 100.
+IF (TV=1) AATV =79 .
+
+IF (LICUA=0) AALICUA= 100.
+IF (LICUA=1) AALICUA=77 .
+
+IF (ESTGAS=0) AAESTGAS=100 .
+IF (ESTGAS=1) AAESTGAS=70 .
+
+IF (VEHI=0) AAVEHI=100 .
+IF (VEHI=1) AAVEHI=68 .
+
+EXECUTE.
+
+FREQUENCIES
+VARIABLES= AADEPEN AANINOS AANA15 AAT15 AAHACINA AAESC AAOCUP AAPISO AAHECTI
+AAEDAD AADISCAP AARADIO AATV AALICUA AAESTGAS AAVEHI
+/FORMAT=NOTABLE
+/STATISTICS=MEAN .
+
+COMPUTE aainput = 0 .
+EXECUTE .
+DO IF ( MISSING(AADEPEN) | MISSING(AANINOS) | MISSING(AANA15)
+| MISSING(AAT15) | MISSING(AAHACINA) | MISSING(AAESC)
+| MISSING(AAOCUP) | MISSING(AAPISO) | missing(AAHECTI) | missing(AAEDAD) |
+missing(AADISCAP) | missing(AARADIO) | MISSING(AATV) | MISSING(AALICUA) |
+missing(AAESTGAS) | missing(AAVEHI) ) .
+RECODE
+aainput (0=1) .
+
+                                                30/284
+
+--- Page 31/284 ---
+
+END IF .
+EXECUTE .
+
+RECODE AADEPEN (SYSMIS=-93.8018) .
+RECODE AANINOS (SYSMIS=-19.6289) .
+RECODE AANA15 (SYSMIS=-3.1208).
+RECODE AAT15 (SYSMIS=-.9345).
+RECODE AAHACINA (SYSMIS=-7.4503).
+RECODE AAESC (SYSMIS=17.3331).
+RECODE AAOCUP (SYSMIS=-.6885) .
+RECODE AAPISO (SYSMIS= 4844).
+RECODE AAHECTI (SYSMIS=4.7667).
+RECODE AAEDAD (SYSMIS=45.2543).
+RECODE AADISCAP (SYSMIS=99.4712).
+RECODE AARADIO (SYSMIS=97.4780) .
+RECODE AATV (SYSMIS=88.72996).
+RECODE AALICUA (SYSMIS=85.0691).
+RECODE AAESTGAS (SYSMIS=79.3060) .
+RECODE AAVEHI (SYSMIS=69.8375) .
+
+COMPUTE AAcalif = AADEPEN + AANINOS + AANA15 + AAT15 + AAHACINA + AAESC + AAOCUP + AAPISO +
+AAHECTI + AAEDAD + AADISCAP + AARADIO + AATV + AALICUA + AAESTGAS + AAVEHI .
+EXECUTE .
+
+****
+
+DISCRIMINANT
+/GROUPS=LP98(0 1)
+/VARIABLES=AAcalif
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS = 42 58
+/STATISTICS=raw TABLE crossvalid
+/CLASSIFY=NONMISSING POOLED .
+
+***checar el número del discriminante
+
+USE ALL.
+COMPUTE filter_$=(dis_1 = 0).
+VARIABLE LABEL filter_$ 'dis_1 = 0 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+VARIABLES=AAcalif /FORMAT=NOTABLE
+/STATISTICS=MINIMUM .
+
+USE ALL.
+COMPUTE filter_$=(dis_1 = 1).
+VARIABLE LABEL filter_$ 'dis_1 = 1 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+VARIABLES=AAcalif /FORMAT=NOTABLE
+/STATISTICS= MAXIMUM .
+
+FILTER OFF.
+USE ALL.
+EXECUTE .
+
+*************FILTROS DE SEGUNDA FASE
+                                31/284
+
+--- Page 32/284 ---
+
+IF ( (ej<25 & TOTPER<5) | (ej>64 & totper<3) ) viejitos= 100 .
+RECODE viejitos (SYSMIS=0) .
+
+COMPUTE AACALIF=AACALIF + viejitos .
+
+COMPUTE AApobre = 0 .
+EXECUTE .
+DO IF (AAcalif< 555.13) .
+RECODE
+AApobre (0=1) .
+END IF .
+
+DO IF (vehi = 0 & aapobre = 1) .
+RECODE
+aapobre (1=0) .
+END IF .
+EXECUTE .
+
+*************************************************************
+****Filtros para eliminar pobres no válidos de fase 8****
+*************************************************************
+
+IF (SEG_SOC > 0 & SEG_SOC < 6) SEGURO = 1 .
+IF (FAM_ENTR >= 1 & FAM_ENTR <= 7) FAM_BIEN = 1 .
+
+IF ((SEGURO = 1 | FAM_BIEN = 1) & AAPOBRE = 1) ELIMIN = 1 .
+
+RECODE SEGURO FAM_BIEN ELIMIN (SYSMIS = 0) .
+
+IF (ELIMIN = 1) AAPOBRE = 0 .
+
+EXECUTE .
+
+********************
+
+FREQUENCIES
+VARIABLES= lp99 AAPOBRE elimin.
+
+*/*/* para obtener el fopo
+
+COMPUTE fecha = 991013 .
+COMPUTE FOPO =26 .
+EXECUTE.
+
+SAVE OUTFILE='f:\fase8\punteo\REG_3\REG3J_26.sav'
+/COMPRESSED.
+
+AGGREGATE
+/OUTFILE='f:\fase8\punteo\REG_3\AGGR.SAV'
+/BREAK=entidad mpio local folio
+/aapobr_1 = MEAN(aapobre).
+
+GET
+FILE='f:\fase8\punteo\REG_3\Aggr.sav'.
+EXECUTE .
+
+RENAME VARIABLES
+aapobr_1 = aapobre .
+
+FILTER OFF.
+USE ALL.
+SELECT IF(aapobre = 1).
+EXECUTE .
+
+SAVE TRANSLATE OUTFILE='f:\fase8\punteo\ENTREGAS\991013\Fopo3_26.dbf'
+/TYPE=DB4 /MAP /REPLA
+                                32/284
+
+--- Page 33/284 ---
+
+**************para obtener el LOCS
+
+GET
+ FILE='f:\fase8\punteo\Reg_3\reg3j_26.sav'.
+EXECUTE .
+
+COMPUTE X = 1 .
+IF (AAPOBRE = 1) FOLPOB = 1.
+IF (AAPOBRE = 1) PERPOB = TOTPER .
+RECODE FOLPOB PERPOB (SYSMIS = 0) .
+EXECUTE.
+
+SAVE OUTFILE='f:\fase8\punteo\REG_3\REG3J_26.sav'
+ /COMPRESSED.
+
+AGGREGATE
+ /OUTFILE='f:\fase8\punteo\reg_3\locs3_26.sav'
+ /BREAK=entidad mpio local
+ /hoglocal = SUM(x) /totper_1 = SUM(totpers) /hogpobre = SUM(folpob) /perpob_1 =
+SUM(perpob) /region_1 = FIRST(region) /fecha_1 = FIRST(fecha) / fopo_1 = FIRST(fopo) .
+
+GET
+ FILE='f:\fase8\punteo\reg_3\locs3_26.sav'.
+EXECUTE .
+
+RENAME VARIABLES
+    region_1 = region / fecha_1 = fecha / fopo_1 = fopo .
+
+SAVE TRANSLATE OUTFILE='f:\fase8\PUNTEO\locals\991013\locs3_26.dbf '
+ /TYPE=DB4
+ /COMPRESSED.
+
+--- Page 34/284 ---
+
+*****************

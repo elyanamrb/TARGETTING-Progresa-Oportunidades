@@ -1,0 +1,362 @@
+--- Page 89/284 ---
+
+*/*/ PUNTAJES DE LA REGION 8
+*/*/ FASE 2
+*/*/ MODELO YY
+
+IF (DEPEN >= 0 ) yyDEPEN = DEPEN * -63 .
+IF (ninos >= 0 ) yyNinos = ninos * -4 .
+   (trab15 >= 0 ) yytrab = trab15 * -52 .
+   (noasi15 >= 0 ) yynoasi = noasi15 * -16 .
+
+IF (hh1 = 1 ) yyhh1 = 100.
+DO IF (hh2=1 ) .
+RECODE
+  yyhh1 (MISSING=84) .
+END IF .
+DO IF (hh3=1 ) .
+RECODE
+  yyhh1 (MISSING=72) .
+END IF .
+DO IF (hh4=1 ) .
+RECODE
+  yyhh1 (MISSING=63) .
+END IF .
+DO IF (hh5=1 ) .
+RECODE
+  yyhh1 (MISSING=56) .
+END IF .
+DO IF (hh1=0 & hh2=0 & hh3=0 & hh4=0 & hh5=0) .
+RECODE
+  yyhh1 (MISSING=51) .
+END IF .
+
+IF (ESCJ1=1 ) yyeduc = 61 .
+DO IF (ESCJ2 = 1 ) .
+RECODE
+  yyeduc (MISSING=67) .
+END IF .
+DO IF (ESCJ3= 1 ) .
+RECODE
+  yyeduc (MISSING=73) .
+END IF .
+DO IF (ESCJ1=0 & ESCJ2=0 & ESCJ3=0 ) .
+RECODE
+  yyeduc (MISSING=100) .
+END IF .
+
+if (ocupj0= 1) yyocupj=56.
+if (ocupj1=1 ) yyocupj=58.
+if (ocupj2=1 ) yyocupj=70.
+if (ocupj3_4=1 ) yyocupj=100.
+if (ocupj5_9=1 ) yyocupj=62.
+
+IF (EJ1=1 ) yyEJ = 78 .
+DO IF (EJ2 = 1 ) .
+RECODE
+  yyEJ (MISSING=70) .
+END IF .
+DO IF (EJ3 = 1 ) .
+RECODE
+  yyEJ (MISSING=73) .
+END IF .
+DO IF (EJ4 = 1 ) .
+RECODE
+  yyEJ (MISSING=82) .
+END IF .
+DO IF (EJ5 = 1) .
+RECODE
+  yyEJ (MISSING=100) .
+END IF .
+
+DO IF (EJ6 = 1) .
+RECODE
+  yyEJ (MISSING=79) .
+END IF .
+
+if (bao = 1 ) yybao = 95 .
+DO IF (bao = 0 ) .
+RECODE
+  yybao (MISSING=100) .
+END IF .
+
+89/284
+
+--- Page 90/284 ---
+
+IF (piso = 1 ) yypiso = 84 .
+DO IF (piso = 0 ) .
+RECODE
+  yypiso (MISSING=100) .
+END IF .
+
+if (radio = 1 ) yyradio = 88 .
+DO IF (radio = 0 ) .
+RECODE
+  yyradio (MISSING=100) .
+END IF .
+
+IF (licua = 1 ) yylicua = 87 .
+DO IF (licua = 0 ) .
+RECODE
+  yylicua (MISSING=100) .
+END IF .
+
+IF (tv = 1 ) yytv = 84 .
+DO IF (tv= 0 ) .
+RECODE
+  yytv (MISSING=100) .
+END IF .
+
+IF (discap = 1 ) yydiscap= 78 .
+DO IF (discap= 0 ) .
+RECODE
+  yydiscap (MISSING=100) .
+END IF .
+
+IF (tierra = 1 ) yytierra= 88 .
+DO IF (tierra= 0 ) .
+RECODE
+  yytierra (MISSING=100) .
+END IF .
+
+FREQUENCIES
+  VARIABLES=yyhh1 yyninos yyOCUPJ yypiso yylicua yyEJ yyEDUC
+  yyDEPEN yydiscap yytv yynoasi yytrab .
+
+FREQUENCIES
+  VARIABLES=licua discap radio bao tv tierra hh1 hh2 hh3 hh4 hh5 hh6 .
+
+DESCRIPTIVES
+  VARIABLES=yyhh1 yyninos yyOCUPJ yypiso yylicua yyEJ yyEDUC yynoasi
+  yyDEPEN yydiscap yytv yyradio yytrab yybao
+  /FORMAT=LABELS NOINDEX
+  /STATISTICS=MEAN STDDEV MIN MAX
+  /SORT=MEAN (A) .
+
+DESCRIPTIVES
+  VARIABLES=hacina ninos esc noasi15 trab15
+  DEPEN
+  /FORMAT=LABELS NOINDEX
+  /STATISTICS=MEAN STDDEV MIN MAX
+  /SORT=MEAN (A) .
+
+*******input medias, luego reemplazar yycalif y dis_1
+
+COMPUTE INPUT=0 .
+
+DO if (sysmis(yyDEPEN)) .
+recode yyDEPEN (missing=-146.23) .
+recode INPUT (else= 1) .
+end if .
+
+DO if (sysmis(yyNINOS)) .
+recode yyNINOS (missing=-4.95) .
+recode INPUT (else= 1) .
+end if .
+
+DO if (sysmis(yytrab)) .
+recode yytrab (missing=-4.88) .
+recode INPUT (else= 1) .
+end if .
+
+do if (sysmis(YYNOASI)) .
+recode YYNOASI (missing=-2.19) .
+recode input (else=1) .
+end if .
+
+90/284
+
+--- Page 91/284 ---
+
+do if (sysmis(YYHH1)) .
+recode YYHH1 (missing=80.03) .
+recode input (else=1) .
+end if .
+
+do if (sysmis(YYdiscap)) .
+recode YYdiscap (missing=98.56) .
+recode input (else=1) .
+end if .
+
+do if (sysmis(YYOCUPJ)) .
+recode YYOCUPJ (missing=63.31) .
+recode input (else=1) .
+end if .
+
+do if (sysmis(YYEDUC)) .
+recode YYEDUC (missing=75.75) .
+recode input (else=1) .
+end if .
+
+do if (sysmis(YYEJ)) .
+recode YYEJ (missing=81.93) .
+recode input (else=1) .
+end if .
+
+do if (sysmis(YYtv)) .
+recode YYtv(missing=95.92) .
+recode input (else=1) .
+end if .
+
+do if (sysmis(YYlicua)) .
+recode YYlicua (missing=94.6) .
+recode input (else=1) .
+end if .
+
+do if (sysmis(YYpiso)) .
+recode YYpiso (missing=96.64) .
+recode input (else=1) .
+end if .
+
+do if (sysmis(YYradio)) .
+recode YYradio (missing=96.13) .
+recode input (else=1) .
+end if .
+
+do if (sysmis(YYbao)) .
+recode YYbao(missing=95.71) .
+recode input (else=1) .
+end if .
+
+do if (sysmis(YYtierra)) .
+recode YYtierra(missing=90.57) .
+recode input (else=1) .
+end if .
+
+*** variables extras
+
+if ( piso=1 | agua =1 | luz=1) indisp=1.
+recode indisp (sysmis = 0).
+
+if ( refri=1 & estgas=1 & vehi=1 & licua=1 & tv=1 ) enser=1.
+recode enser (sysmis=0).
+
+if ( indisp=1 ) yyindisp = -100.
+recode yyindisp (sysmis=0).
+
+if ( enser = 1) yyenser= -100.
+recode yyenser (sysmis =0).
+
+COMPUTE yycalif = yydepen+yyninos+yydiscap+yytrab+yynoasi+yyhh1+yyeduc+yyocupj+yyej
++yylicua+yyradio+yytv +yypiso + yybao + yytierra +yyindisp + yyenser.
+
+***** discriminante puntaje vs lpe
+
+DISCRIMINANT
+/GROUPS=lpnva(0 1)
+/VARIABLES= yycalif
+/ANALYSIS ALL
+/PRIORS EQUAL
+/save class
+
+91/284
+
+--- Page 92/284 ---
+
+/STATISTICS= raw TABLE
+/CLASSIFY=NONMISSING POOLED .
+
+****** encontrar punto de corte
+
+EXAMINE
+  VARIABLES=yycalif BY dis_1
+  /PLOT NONE
+  /STATISTICS DESCRIPTIVES
+  /CINTERVAL 95
+  /MISSING LISTWISE
+  /NOTOTAL.
+
+if (yycalif<=-819) pobre=1 .
+
+do if (yycalif>-819) .
+recode pobre (missing=0) .
+end if .
+
+compute x=1.
+
+92/284
+
+--- Page 93/284 ---
+
+*/*/ PUNTAJE DE LA REGION 3
+*/*/ FASE 1
+*/*/ MODELO YY
+
+* LINEA DE POBREZA
+
+code ingmesh ingmen15(99999=sysmis) .
+
+compute inmh15pc=(ingmesh-ingmen15)/totpers.
+
+if (sysmis(ingmesh) | sysmis(ingmen15))inmh15pc=999.
+recode inmh15pc (999=sysmis).
+
+compute lpNVA=0.
+if (inmh15pc <= 286.06) lpNVA=1.
+if (sysmis(ingmesh))lpNVA=99.
+recode lpNVA (99=sysmis).
+
+* INDICE DE DEPENDENCIA
+
+IF (PERCEP>=0) depen= (totpers-percep)/percep.
+IF (PERCEP=0) DEPEN= TOTPERS.
+
+* DISCAPACITADOS
+
+RENAME VARIABLES (P431=DISCAP) .
+
+*HACINAMIENTO
+
+RECODE P61 (99=SYSMIS).
+compute hacina= totpers/p61.
+
+IF (hacina <= 1) hh1 = 1.
+RECODE hh1 (MISSING=0)
+IF (hacina >1 & hacina<=2) hh2 = 1 .
+RECODE hh2 (MISSING=0) .
+IF (hacina >2 & hacina<=3) hh3 = 1 .
+RECODE hh3 (MISSING=0) .
+IF (hacina >3 & hacina<=4) hh4 = 1 .
+RECODE hh4 (MISSING=0) .
+IF (hacina >4 & hacina<=5) hh5 = 1 .
+RECODE hh5 (MISSING=0) .
+IF (hacina >5 ) hh6 = 1 .
+RECODE hh6 (MISSING=0) .
+
+IF (SYSMIS(hacina)) hh1=99.
+IF (SYSMIS(hacina)) hh2=99.
+IF (SYSMIS(hacina)) hh3=99.
+IF (SYSMIS(hacina)) hh4=99.
+IF (SYSMIS(hacina)) hh5=99.
+IF (SYSMIS(hacina)) hh6=99.
+
+RECODE hh1 hh2 hh3 hh4 hh5 hh6 (99=SYSMIS) .
+
+* ESCOLARIDAD DEL JEFE
+
+compute esc=escjefe .
+if (esccony > escjefe & esccony <99) esc= esccony.
+
+IF (ESC=0) ESCJ1 = 1 .
+RECODE ESCJ1 (MISSING=0) .
+IF (ESC>=1 & ESC<=5) ESCJ2 = 1 .
+RECODE ESCJ2 (MISSING=0) .
+IF (ESC=6) ESCJ3 = 1 .
+RECODE ESCJ3 (MISSING=0) .
+IF (ESC>=7) ESCJ4 = 1 .
+RECODE ESCJ4 (MISSING=0) .
+recode esc (99= sysmis).
+
+IF (SYSMIS(Esc)) EscJ1=99.
+IF (SYSMIS(Esc)) EscJ2=99.
+IF (SYSMIS(Esc)) EscJ3=99.
+IF (SYSMIS(Esc)) EscJ4=99.
+
+IF (ESCJ1=1) ESCJ=1 .
+IF (ESCJ2=1) ESCJ=2 .
+IF (ESCJ3=1) ESCJ=3 .
+IF (ESCJ4=1) ESCJ=4 .
+
+RECODE EscJ1 EscJ2 EscJ3 EscJ4 (99=SYSMIS).
+

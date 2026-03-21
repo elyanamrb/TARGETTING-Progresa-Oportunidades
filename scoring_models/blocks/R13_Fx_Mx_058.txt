@@ -1,0 +1,146 @@
+región 13
+
+COMPUTE bbDEPEN = -31*DEPEN .
+COMPUTE bbNINOS = -20*NINOS .
+COMPUTE bbOCUPJ = -41*OCUPJ_1 .
+COMPUTE bbESC = 8*ESC .
+COMPUTE bbPISO = -2*PISO_1 .
+COMPUTE bbEDAD = -1*EJ .
+COMPUTE bbAGUABA = 16*AGUABA_1 .
+COMPUTE bbTRAB = -41*TRAB151 .
+COMPUTE bbNOASI = -29*NOASI1 .
+COMPUTE bbPARED = -30* PARED_1 .
+
+IF (REFRI = 0) bbREFRI = 100 .
+IF (REFRI = 1) bbREFRI = 86 .
+
+IF (VEHI = 0) bbVEHI = 100 .
+(VEHI = 1) bbVEHI = 71 .
+
+IF (ESTGAS = 0) bbESTGAS = 100 .
+IF (ESTGAS = 1) bbESTGAS = 78 .
+
+IF (TV = 0) bbTV = 100 .
+IF (TV = 1) bbTV = 79 .
+
+EXECUTE.
+
+***calcular las medias de las variables para imputar a valores perdidos
+
+FREQUENCIES
+VARIABLES= bbdepen bbninos bbocupj bbesc bbpiso bbedad bbaguaba bbtrab bbnoasi bbpared
+bbrefri bbvehi bbestgas bbtv
+/FORMAT=NOTABLE
+/STATISTICS=MEAN .
+
+COMPUTE bbinput = 0 .
+EXECUTE .
+DO IF (MISSING(bbdepen) | MISSING(bbninos) | MISSING (bbocupj)| MISSING (bbesc)| MISSING (bbpiso)
+| MISSING(bbedad) | MISSING(bbaguaba) | MISSING (bbtrab) | MISSING(bbnoasi) | MISSING (bbpared)
+| MISSING(bbrefri) | MISSING (bbvehi)| MISSING(bbestgas) |MISSING(bbtv)) .
+RECODE
+bbinput (0=1) .
+END IF
+EXECUTE .
+
+***se recodifican los valores perdidos con las medias de las variables
+
+SCODE bbdepen (SYSMIS = -85.1868) .
+RECODE bbninos (SYSMIS = -31.4122) .
+RECODE bbocupj (SYSMIS = 0.1526) .
+RECODE bbesc (SYSMIS = 29.5263) .
+RECODE bbpiso (SYSMIS = -0.0105) .
+RECODE bbedad (SYSMIS = -45.9325) .                163/284
+
+--- Page 164/284 ---
+
+RECODE bbaguaba (SYSMIS = -0.0034437) .
+RECODE bbtrab (SYSMIS = -1.4704) .
+RECODE bbnoasi (SYSMIS = -3.7344) .
+RECODE bbpared (SYSMIS = 0.2032) .
+RECODE bbrefri (SYSMIS = 88.7829) .
+ECODE bbvehi (SYSMIS = 72.5740) .
+aECODE bbestgas (SYSMIS = 85.8486) .
+RECODE bbtv (SYSMIS = 89.3207) .
+
+***se hace la calificación
+
+COMPUTE bbcalif = bbdepen + bbninos + bbocupj + bbesc + bbpiso + bbedad +
+bbaguaba + bbtrab + bbnoasi + bbpared + bbrefri + bbvehi + bbestgas + bbtv .
+EXECUTE .
+
+***discriminante con la línea de pobreza
+
+DISCRIMINANT
+/GROUPS=LP98(0 1)
+/VARIABLES=bbcalif
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS .41 .59
+/STATISTICS=raw TABLE crossvalid
+/CLASSIFY=NONMISSING POOLED .
+
+USE ALL.
+COMPUTE filter_$=(dis_2 = 0).
+VARIABLE LABEL filter_$ 'dis_2 = 0 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+ZEQUENCIES
+VARIABLES=bbcalif
+/FORMAT=NOTABLE
+/STATISTICS=MINIMUM .
+
+USE ALL.
+COMPUTE filter_$=(dis_2 = 1).
+VARIABLE LABEL filter_$ 'dis_2 = 1 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+VARIABLES=bbcalif
+/FORMAT=NOTABLE
+/STATISTICS= MAXIMUM .
+
+FILTER OFF.
+USE ALL.
+EXECUTE .
+
+***se determina la línea de corte y se obtienen los pobres
+
+IF ((E)< = 24 & totper <= 4) | (E) >= 65 & totper <= 2)) viejitos = -100.
+recode viejitos (SYSMIS = 0) .
+EXECUTE .
+
+COMPUTE bbcalif1 = bbcalif + viejitos .
+cECUTE .
+
+COMPUTE bbpobre= 0 .
+EXECUTE .
+DO IF (bbcalif1< 258.02) .
+                                                164/284
+
+--- Page 165/284 ---
+
+RECODE
+bbpobre (0=1) .
+END IF .
+EXECUTE .
+
+***** Recodificación por vehículo
+
+DO IF (vehi = 0 & bbpobre = 1) .
+RECODE
+bbpobre (1=0) .
+END IF .
+EXECUTE .
+
+FREQUENCIES
+VARIABLES=lp98 bbpobre .
+
+--- Page 166/284 ---
+

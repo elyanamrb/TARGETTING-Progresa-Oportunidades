@@ -1,0 +1,244 @@
+--- Page 46/284 ---
+
+***************PUNTAJE PARA LA REGIÓN 3 PUNTAJE PARA LA REGIÓN 3 PUNTAJE PARA LA REGIÓN 3
+
+*/*/ MODELO AA DE LA FASE 3
+
+DISCRIMINANT
+ /GROUPS=lp98(0 1)
+ /VARIABLES=depen ninos noasi1 trab151 hacina esc ocupj_1 discap piso_1
+  radio tv licua estgas vehi hectie1 ej
+ /ANALYSIS ALL
+ /SAVE=CLASS
+ /PRIORS = .42 .58
+ /STATISTICS=RAW TABLE crossvalid
+ ./CLASSIFY=NONMISSING POOLED .
+
+*/*/ se calculan los puntajes
+
+COMPUTE AADEPEN=-35*DEPEN.
+COMPUTE AANINOS=-11*NINOS .
+COMPUTE AANA15=-18*NOASI1.
+COMPUTE AAT15=-14*TRAB151 .
+COMPUTE AAHACINA=-2*HACINA .
+COMPUTE AAESC=6*ESC .
+COMPUTE AAOCUP=23*OCUPJ_1 .
+COMPUTE AAPISO=11*PISO_1 .
+COMPUTE AAHECTI=2*HECTIE1 .
+COMPUTE AAEDAD=1*ej .
+
+IF (DISCAP =0) AADISCAP = 100.
+IF (DISCAP =1) AADISCAP = 87 .
+
+IF (RADIO=0) AARADIO=100 .
+IF (RADIO=1) AARADIO=94 .
+
+if (TV=0) AATV = 100.
+IF (TV=1) AATV =79 .
+
+IF (LICUA=0) AALICUA= 100.
+IF (LICUA=1) AALICUA=77 .
+
+    (ESTGAS=0) AAESTGAS=100 .
+    (ESTGAS=1) AAESTGAS=70 .
+
+IF (VEHI=0) AAVEHI=100 .
+IF (VEHI=1) AAVEHI=68 .
+
+EXECUTE.
+
+FREQUENCIES
+  VARIABLES= AADEPEN AANINOS AANA15 AAT15 AAHACINA AAESC AAOCUP AAPISO AAHECTI
+    AAEDAD AADISCAP AARADIO AATV AALICUA AAESTGAS AAVEHI
+  /FORMAT=NOTABLE
+  /STATISTICS=MEAN .
+
+COMPUTE aainput = 0 .
+EXECUTE .
+DO IF ( MISSING(AADEPEN) I MISSING(AANINOS) I MISSING(AANA15)
+   I MISSING(AAT15) I MISSING(AAHACINA) I MISSING(AAESC)
+   I MISSING(AAOCUP) I MISSING(AAPISO) I missing(AAHECTI) I missing(AAEDAD) I
+     missing(AADISCAP) I missing(AARADIO) I MISSING(AATV) I MISSING(AALICUA) I
+     missing(AAESTGAS) I missing(AAVEHI) ) .
+RECODE
+   aainput (0=1) .
+END IF .
+EXECUTE .
+
+RECODE AADEPEN (SYSMIS=-100.69) .
+RECODE AANINOS (SYSMIS=-20.17) .
+RECODE AANA15 (SYSMIS=-3.048) .
+RECODE AAT15 (SYSMIS=-7.66).
+RECODE AAHACINA (SYSMIS=-8.01).
+RECODE AAESC (SYSMIS=16.74).
+  CODE AAOCUP (SYSMIS= 27).
+RECODE AAPISO (SYSMIS=-.179).
+RECODE AAHECTI (SYSMIS=5.03) .
+RECODE AAEDAD (SYSMIS=45.14).
+RECODE AADISCAP (SYSMIS=99.5).
+RECODE AARADIO (SYSMIS=97.08) .
+                                                                                                                46/284
+
+--- Page 47/284 ---
+
+RECODE AATV (SYSMIS=85.48) .
+RECODE AALICUA (SYSMIS=83.82).
+RECODE AAESTGAS (SYSMIS=76.93) .
+RECODE AAVEHI (SYSMIS=68.86) .
+
+COMPUTE AAcalif = AADEPEN + AANINOS + AANA15 + AAT15 + AAHACINA + AAESC + AAOCUP + AAPISO +
+    AAHECTI + AAEDAD + AADISCAP + AARADIO + AATV + AALICUA +
+    AAESTGAS + AAVEHI .
+EXECUTE .
+
+***
+DISCRIMINANT
+ /GROUPS=LP98(0 1)
+ /VARIABLES=AAcalif
+ /ANALYSIS ALL
+ /SAVE=CLASS
+ /PRIORS = .42 .58
+ /STATISTICS=raw TABLE crossvalid
+ /CLASSIFY=NONMISSING POOLED .
+
+***checar el numero del discriminante
+
+USE ALL.
+COMPUTE filter_$=(dis_2 = 0).
+VARIABLE LABEL filter_$ 'dis_2 = 0 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+  VARIABLES=AAcalif /FORMAT=NOTABLE
+  /STATISTICS=MINIMUM .
+
+USE ALL.
+COMPUTE filter_$=(dis_2 = 1).
+VARIABLE LABEL filter_$ 'dis_2 = 1 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+I LTER BY filter_$.
+xECUTE .
+
+FREQUENCIES
+  VARIABLES=AAcalif /FORMAT=NOTABLE
+  /STATISTICS= MAXIMUM .
+
+FILTER OFF.
+USE ALL.
+EXECUTE .
+
+**************FILTROS DE SEGUNDA FASE
+
+IF ( (ej<25 & TOTPER<5) I (ej<64 & totper<3) ) viejitos=100 .
+RECODE viejitos (SYSMIS=0) .
+
+COMPUTE AACALIF1=AACALIF + viejitos .
+EXECUTE .
+
+COMPUTE AApobre = 0 .
+EXECUTE .
+DO IF (AAcalif1< 507.1) .
+RECODE
+  AApobre (0=1) .
+END IF .
+EXECUTE .
+
+DO IF (vehi = 0 & aapobre = 1) .
+RECODE
+   aapobre (1=0) .
+END IF .
+EXECUTE .
+
+FREQUENCIES
+  VARIABLES= lp98 AAPOBRE.
+
+47/284
+
+--- Page 48/284 ---
+
+*/*/ PUNTAJE DE LA REGIÓN 3
+*/*/ FASE 1
+*/*/ MODELO AA
+
+* LINEA DE POBREZA
+
+*code ingmesh ingmen15(99999=sysmis) .
+
+compute inmh15pc=(ingmesh-ingmen15)/totpers.
+
+if (sysmis(ingmesh) I sysmis(ingmen15))inmh15pc=999.
+recode inmh15pc (999=sysmis).
+
+compute IpNVA=0.
+if (inmh15pc <= 286.06) IpNVA=1.
+if (sysmis(ingmesh))IpNVA=99.
+recode IpNVA (99=sysmis).
+
+* INDICE DE DEPENDENCIA
+
+IF (PERCEP~=0) depen= (totpers-percep)/percep.
+IF (PERCEP=0) DEPEN= TOTPERS.
+
+* DISCAPACITADOS
+
+RENAME VARIABLES (P431=DISCAP) .
+
+*HACINAMIENTO
+
+RECODE P61 (99=SYSMIS).
+compute hacina= totpers/p61.
+
+IF (hacina <= 1) hh1 = 1 .
+RECODE hh1 (MISSING=0).
+IF (hacina > 1 & hacina<=2) hh2 = 1 .
+RECODE hh2 (MISSING=0) .
+IF (hacina > 2 & hacina<=3) hh3 = 1 .
+RECODE hh3 (MISSING=0) .
+IF (hacina > 3 & hacina<=4) hh4 = 1 .
+RECODE hh4 (MISSING=0) .
+IF (hacina > 4 & hacina<=5) hh5 = 1 .
+RECODE hh5 (MISSING=0).
+IF (hacina > 5 ) hh6 = 1.
+RECODE hh6 (MISSING=0) .
+
+IF (SYSMIS(hacina)) hh1=99.
+IF (SYSMIS(hacina)) hh2=99.
+IF (SYSMIS(hacina)) hh3=99.
+IF (SYSMIS(hacina)) hh4=99.
+IF (SYSMIS(hacina)) hh5=99.
+IF (SYSMIS(hacina)) hh6=99.
+
+RECODE hh1 hh2 hh3 hh4 hh5 hh6 (99=SYSMIS) .
+
+* ESCOLARIDAD DEL JEFE
+
+compute esc=escjefe .
+if (esccony > escjefe & esccony <99) esc= esccony.
+
+IF (ESC=0) ESCJ1 = 1 .
+RECODE ESCJ1 (MISSING=0) .
+IF (ESC>=1 & ESC<=5) ESCJ2 = 1 .
+RECODE ESCJ2 (MISSING=0) .
+IF (ESC=6) ESCJ3 = 1 .
+RECODE ESCJ3 (MISSING=0) .
+IF (ESC>=7) ESCJ4 = 1 .
+RECODE ESCJ4 (MISSING=0) .
+recode esc (99= sysmis).
+
+IF (SYSMIS(Esc)) EscJ1=99.
+IF (SYSMIS(Esc)) EscJ2=99.
+IF (SYSMIS(Esc)) EscJ3=99.
+IF (SYSMIS(Esc)) EscJ4=99.
+
+- (ESCJ1=1) ESCJ=1 .
+  (ESCJ2=1) ESCJ=2 .
+IF (ESCJ3=1) ESCJ=3 .
+IF (ESCJ4=1) ESCJ=4 .
+
+RECODE EscJ1 EscJ2 EscJ3 EscJ4 (99=SYSMIS).
+48/284
+

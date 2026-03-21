@@ -1,0 +1,441 @@
+--- Page 93/284 ---
+
+*/*/ PUNTAJE DE LA REGION 3
+*/*/ FASE 1
+*/*/ MODELO YY
+
+* LINEA DE POBREZA
+
+code ingmesh ingmen15(99999=sysmis) .
+
+compute inmh15pc=(ingmesh-ingmen15)/totpers.
+
+if (sysmis(ingmesh) | sysmis(ingmen15))inmh15pc=999.
+recode inmh15pc (999=sysmis).
+
+compute lpNVA=0.
+if (inmh15pc <= 286.06) lpNVA=1.
+if (sysmis(ingmesh))lpNVA=99.
+recode lpNVA (99=sysmis).
+
+* INDICE DE DEPENDENCIA
+
+IF (PERCEP>=0) depen= (totpers-percep)/percep.
+IF (PERCEP=0) DEPEN= TOTPERS.
+
+* DISCAPACITADOS
+
+RENAME VARIABLES (P431=DISCAP) .
+
+*HACINAMIENTO
+
+RECODE P61 (99=SYSMIS).
+compute hacina= totpers/p61.
+
+IF (hacina <= 1) hh1 = 1.
+RECODE hh1 (MISSING=0)
+IF (hacina >1 & hacina<=2) hh2 = 1 .
+RECODE hh2 (MISSING=0) .
+IF (hacina >2 & hacina<=3) hh3 = 1 .
+RECODE hh3 (MISSING=0) .
+IF (hacina >3 & hacina<=4) hh4 = 1 .
+RECODE hh4 (MISSING=0) .
+IF (hacina >4 & hacina<=5) hh5 = 1 .
+RECODE hh5 (MISSING=0) .
+IF (hacina >5 ) hh6 = 1 .
+RECODE hh6 (MISSING=0) .
+
+IF (SYSMIS(hacina)) hh1=99.
+IF (SYSMIS(hacina)) hh2=99.
+IF (SYSMIS(hacina)) hh3=99.
+IF (SYSMIS(hacina)) hh4=99.
+IF (SYSMIS(hacina)) hh5=99.
+IF (SYSMIS(hacina)) hh6=99.
+
+RECODE hh1 hh2 hh3 hh4 hh5 hh6 (99=SYSMIS) .
+
+* ESCOLARIDAD DEL JEFE
+
+compute esc=escjefe .
+if (esccony > escjefe & esccony <99) esc= esccony.
+
+IF (ESC=0) ESCJ1 = 1 .
+RECODE ESCJ1 (MISSING=0) .
+IF (ESC>=1 & ESC<=5) ESCJ2 = 1 .
+RECODE ESCJ2 (MISSING=0) .
+IF (ESC=6) ESCJ3 = 1 .
+RECODE ESCJ3 (MISSING=0) .
+IF (ESC>=7) ESCJ4 = 1 .
+RECODE ESCJ4 (MISSING=0) .
+recode esc (99= sysmis).
+
+IF (SYSMIS(Esc)) EscJ1=99.
+IF (SYSMIS(Esc)) EscJ2=99.
+IF (SYSMIS(Esc)) EscJ3=99.
+IF (SYSMIS(Esc)) EscJ4=99.
+
+IF (ESCJ1=1) ESCJ=1 .
+IF (ESCJ2=1) ESCJ=2 .
+IF (ESCJ3=1) ESCJ=3 .
+IF (ESCJ4=1) ESCJ=4 .
+
+RECODE EscJ1 EscJ2 EscJ3 EscJ4 (99=SYSMIS).
+
+--- Page 94/284 ---
+
+* OCUPACIÓN DEL JEFE
+
+COMPUTE TRAB=0.
+IF (P23>=1 & p23<=3 | P24>=1 & p24<=5) trab=1
+IF ((P23 >=8 | SYSMIS(P23))& (P24 >=8 | SYSMIS(P24))) TRAB=9.
+recode trab (9= sysmis).
+
+code p27 (99=88).
+recode P27 (88=sysmis) .
+compute ocupj= p27.
+
+if (trab = 0 ) ocupj=0.
+IF (ocUPJ = 0) OCUPJ0 = 1 .
+RECODE OCUPJ0 (MISSING=0) .
+IF (ocUPJ = 1) OCUPJ1 = 1 .
+RECODE OCUPJ1 (MISSING=0) .
+IF (OCUPJ = 2) OCUPJ2 = 1 .
+RECODE OCUPJ2 (MISSING=0) .
+IF (OCUPJ = 3) OCUPJ3 = 1 .
+RECODE OCUPJ3 (MISSING=0) .
+IF (OCUPJ = 4) OCUPJ4 = 1 .
+RECODE OCUPJ4 (MISSING=0) .
+IF (OCUPJ = 5) OCUPJ5 = 1 .
+RECODE OCUPJ5 (MISSING=0)
+IF (OCUPJ = 6) OCUPJ6 = 1 .
+RECODE OCUPJ6 (MISSING=0) .
+IF (OCUPJ = 7) OCUPJ7 = 1 .
+RECODE OCUPJ7 (MISSING=0) .
+IF (OCUPJ = 8) OCUPJ8 = 1 .
+RECODE OCUPJ8 (MISSING=0) .
+
+IF (SYSMIS(OCUPJ)) OCUPJ0=99.
+IF (SYSMIS(OCUPJ)) OCUPJ1=99.
+IF (SYSMIS(OCUPJ)) OCUPJ2=99.
+IF (SYSMIS(OCUPJ)) OCUPJ3=99.
+IF (SYSMIS(OCUPJ)) OCUPJ4=99.
+IF (SYSMIS(OCUPJ)) OCUPJ5=99.
+IF (SYSMIS(OCUPJ)) OCUPJ6=99.
+IF (SYSMIS(OCUPJ)) OCUPJ7=99.
+IF (SYSMIS(OCUPJ)) OCUPJ8=99.
+
+.ECODE OCUPJ0 OCUPJ1 OCUPJ2 OCUPJ3 OCUPJ4
+      OCUPJ5 OCUPJ6 OCUPJ7 OCUPJ8 OCUPJ0 (99=SYSMIS) .
+
+*EDAD DEL JEFE
+
+compute EJ = p08 .
+
+DO IF (P09<15 | P09>98) .
+RECODE EJ (ELSE=SYSMIS) .
+END IF .
+
+IF (EJ = 1) EJ1 = 1 .
+RECODE EJ1 (MISSING=0) .
+IF (EJ = 2) EJ2 = 1 .
+RECODE EJ2 (MISSING=0) .
+IF (EJ = 3) EJ3 = 1 .
+RECODE EJ3 (MISSING=0) .
+IF (EJ = 4) EJ4 = 1 .
+RECODE EJ4 (MISSING=0) .
+IF (EJ = 5) EJ5 = 1 .
+RECODE EJ5 (MISSING=0) .
+IF (EJ = 6) EJ6 = 1 .
+RECODE EJ6 (MISSING=0) .
+
+IF (SYSMIS(EJ)) EJ1=99.
+IF (SYSMIS(EJ)) EJ2=99.
+IF (SYSMIS(EJ)) EJ3=99.
+IF (SYSMIS(EJ)) EJ4=99.
+IF (SYSMIS(EJ)) EJ5=99.
+IF (SYSMIS(EJ)) EJ6=99.
+
+RECODE EJ1 EJ2 EJ3 EJ4 EJ5 EJ6 (99=SYSMIS).
+
+RECODIFICACION Y NOMBRE DE VARIABLES
+
+RENAME VARIABLES (P57=AGUA) (P59=PISO)(P432=BAO) (P64_09=LAVA) (P64_05=REFRI) (P64_06=ESTGAS)
+    (P64_12=VHS) (P64_15=TELEF) (NINTRAB=TRAB15) (NOASIS=NOASI15).
+
+RECODE AGUA PISO BAO LAVA REFRI ESTGAS VHS TELEF TRAB15 NOASI15 (9=SYSMIS) .
+
+--- Page 95/284 ---
+
+* VEHICULO = AUTO O CAMION O CAMIONETA
+
+compute vehi=p64_01.
+if (p64_01 = 0 | p64_02 = 0) vehi=0.
+
+ECODE VEHI (9=SYSMIS).
+
+compute ocupj056=ocupj0 + ocupj5 + ocupj6.
+
+**********************************
+FREQUENCIES VARIABLES= depen ninos trab15 NOASI15
+    escj1 escj2 escj3
+ocupj0 ocupj1 ocupj2 ocupj3
+ej2 ej3 ej4 ej5 ej6
+piso refri bao
+vehi lava vhs telef.
+
+DISCRIMINANT
+/GROUPS=lpnva(0 1)
+/VARIABLES= depen ninos
+    hh2 hh3 hh4 hh5 hh6 discap trab15 noasi15
+escj1 escj2 escj3
+    ocupj056 ocupj1 ocupj3
+ej2 ej3 ej4 ej5 ej1
+agua
+lava refri estgas vehi
+/ANALYSIS ALL
+/PRIORS EQUAL
+/STATISTICS= raw TABLE
+/CLASSIFY=NONMISSING POOLED .
+
+**************************************CALIFICACIONES
+**reg5
+
+IF (DEPEN >= 0 ) yyDEPEN = DEPEN * .45 .
+
+IF (trab15 >= 0 ) yytrab = trab15 * -73 .
+
+IF (noasi15 >= 0 ) yynoasi = noasi15 * -3 .
+
+IF (ESCJ1=1 ) yyeduc = 61 .
+DO IF (ESCJ2 = 1 ) .
+RECODE
+  yyeduc (MISSING=63) .
+END IF .
+DO IF (ESCJ3= 1 ) .
+RECODE
+  yyeduc (MISSING=67) .
+END IF .
+DO IF (ESCJ1=0 & ESCJ2=0 & ESCJ3=0 ) .
+RECODE
+  yyeduc (MISSING=100) .
+END IF .
+
+IF (OCUPJ056=1 ) yyOCUPJ=54 .
+DO IF (OCUPJ1=1 ) .
+RECODE
+  yyOCUPJ (MISSING=58) .
+END IF .
+
+DO IF (OCUPJ3=1 ) .
+RECODE
+  yyOCUPJ (MISSING=70) .
+END IF .
+DO IF (OCUPJ056=0 & ocupj1=0 & ocupj3=0) .
+RECODE
+  yyOCUPJ (MISSING=100) .
+END IF .
+
+IF (EJ1=1 ) yyEJ = 88
+    IF (EJ2 = 1 ) .
+RECODE
+  yyEJ (MISSING=54) .
+END IF .
+DO IF (EJ3 = 1 ) .
+RECODE
+
+--- Page 96/284 ---
+
+yyEJ (MISSING=56) .
+END IF .
+DO IF (EJ4 = 1 ) .
+RECODE
+  yyEJ (MISSING=71) .
+END IF .
+DO IF (EJ5 = 1) .
+RECODE
+  yyEJ (MISSING=100) .
+END IF .
+
+DO IF (EJ6 = 1) .
+RECODE
+  yyEJ (MISSING=72) .
+END IF .
+
+IF (tv = 1 ) yytv = 84 .
+DO IF (tv = 0 ) .
+RECODE
+  yyagua (MISSING=100) .
+END IF .
+
+IF (lava = 1 ) yylava = 84 .
+DO IF (lava = 0 ) .
+RECODE
+  yylava (MISSING=100) .
+END IF .
+
+IF (refri = 1 ) yyrefri = 66 .
+DO IF (refri = 0 ) .
+RECODE
+  yyrefri (MISSING=100) .
+END IF .
+
+IF (vehi = 1 ) yyvehi = 66 .
+DO IF (vehi = 0 ) .
+RECODE
+  yyvehi (MISSING=100) .
+END IF .
+
+*******input medias, luego reemplazar yycalif y dis_1
+
+COMPUTE INPUT=0 .
+
+DO if (sysmis(yyDEPEN))
+recode yyDEPEN (missing=-73.24) .
+recode INPUT (else= 1) .
+end if .
+
+DO if (sysmis(yytrab))
+recode yytrab (missing=-6.67) .
+recode INPUT (else=1) .
+end if .
+
+do if (sysmis(YYLAVA))
+recode YYLAVA (missing=56.77) .
+recode input (else=1) .
+end if .
+
+do if (sysmis(YYOCUPJ))
+recode YYOCUPJ (missing=58.49) .
+recode input (else=1) .
+end if .
+
+do if (sysmis(YYEDUC))
+recode YYEDUC (missing=65.42) .
+recode input (else=1) .
+end if .
+
+do if (sysmis(YYREFRI))
+recode YYREFRI (missing=65.59) .
+code input (else=1) .
+d if .
+
+do if (sysmis(YYtv))
+recode YYtv (missing=65.59) .
+recode input (else=1) .
+end if .
+
+--- Page 97/284 ---
+
+do if (sysmis(YYVEHI)) .
+recode YYVEHI (missing=54.61) .
+recode input (else=1) .
+end if .
+
+if (sysmis(YYEJI)) .
+code YYEJI (missing=92.75) .
+recode input (else=1) .
+end if .
+
+yycalif = yydepen+yytrab+yyeduc+yyocupj+yyej+yytv+
+yylava+yyrefri+yyvehi .
+
+if (yycalif<=447.5) pobre=1 .
+
+do if (yycalif>447.5) .
+recode pobre (missing=0) .
+end if .
+
+RENAME VARIABLES (YYCALIF=CALIF) .
+
+SAVE TRANSLATE OUTFILE='C:\NUEVAREGSNVAREG5calif.DBF'
+/TYPE=DB4
+/KEEP=FOLIO ENTIDAD MPIO LOCAL REGION mu15a49 nin0a2 nin3a5 nio6a9 nia6a9 no10a12 na10a12
+no13a15 na13a16 DEPEN NINOS DISCAP TRAB15 NOASI15 HH1 HH2 HH3 HH4 HH5 HH6
+ESCJ1 ESCJ2 ESCJ3 ESCJ4 OCUPJ056 OCUPJ1 OCUPJ2 OCUPJ3 EJ1 EJ2 EJ3 EJ4 EJ5 EJ6 AGUA LAVA
+REFRI ESTGAS VEHI yydepen yyninos yydiscap yytrab yynoasj yyhh1 yyeduc yyocupj
+yyej yyagua yylava yyrefri yyestgas yyvehi CALIF INPUT POBRE .
+
+--- Page 98/284 ---
+
+*/*/ PUNTAJE DE LA REGION 8
+*/*/ FASE 1
+*/*/ MODELO AA
+
+***Discriminante con modelo nuevo
+
+DISCRIMINANT
+/GROUPS=lp98(0,1)
+/VARIABLES=hacina depen ninos ocupj_1 esc mu15a49 trab151 noasi1
+vhs refri vehi lava licua radio estgas tv discap
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS = .42 .58
+/STATISTICS=RAW TABLE crossvalid
+/CLASSIFY=NONMISSING POOLED .
+
+*** Puntajes Región 8
+
+COMPUTE AAHACINA=-2*HACINA .
+COMPUTE AADEPEN=-46*DEPEN .
+COMPUTE AANINOS=-25*NINOS .
+COMPUTE AAOCUPJ=-42*OCUPJ_1 .
+COMPUTE AAESC=62*ESC .
+COMPUTE AAMU15A=10*MU15A49 .
+COMPUTE AATRAB=-67*TRAB151 .
+COMPUTE AANOASI=-14*NOASI1 .
+
+IF (VHS =0) AAVHS = 100.
+IF (VHS =1) AAVHS = 75 .
+
+IF (REFRI=0) AAREFRI=100 .
+IF (REFRI=1) AAREFRI=85 .
+
+if (VEHI=0) AAVEHI = 100.
+IF (VEHI=1) AAVEHI =86 .
+
+IF (LAVA=0) AALAVA= 100. 
+IF (LAVA=1) AALAVA=84 .
+
+IF (LICUA =0) AALICUA = 100.
+IF (LICUA =1) AALICUA = 90 .
+
+IF (RADIO=0) AARADIO=100 .
+IF (RADIO=1) AARADIO=94 .
+
+if (ESTGAS=0) AAESTGAS = 100.
+IF (ESTGAS=1) AAESTGAS =84 .
+
+IF (TV=0) AATV= 100.
+IF (TV=1) AATV=89 .
+
+IF (DISCAP=0) AADISCAP= 100.
+IF (DISCAP=1) AADISCAP=80 .
+
+EXECUTE.
+
+***calcular las medias de las variables para imputar a valores perdidos
+
+FREQUENCIES
+VARIABLES= AAHACINA AADEPEN AANINOS AAOCUPJ AAESC AAMU15A AATRAB AANOASI
+AAVHS AAREFRI AAVEHI AALAVA AALICUA AARADIO AAESTGAS AATV AADISCAP
+/FORMAT=NOTABLE
+/STATISTICS=MEAN .
+
+COMPUTE input = 0 .
+EXECUTE .
+DO IF ( MISSING(AAHACINA) | MISSING(AADEPEN) | MISSING(AANINOS)| MISSING(AAOCUPJ) | MISSING(AAESC)
+| MISSING(AAMU15A) | MISSING(AATRAB) | MISSING(AANOASI)| MISSING(AAVHS) | MISSING(AAREFRI)
+| MISSING(AAVEHI) | missing(AALAVA) | missing(AALICUA) | MISSING(AARADIO) | MISSING(AAESTGAS)
+| MISSING(AATV) | MISSING(AADISCAP)) .
+RECODE
+input (0=1) .
+END IF .
+EXECUTE .
+
+se recodifican los valores perdidos con las medias de las variables
+
+RECODE AAHACINA (SYSMIS=-5.23) .
+RECODE AADEPEN (SYSMIS=-109.8) .
+RECODE AANINOS (SYSMIS=-42.72).
+RECODE AAOCUPJ (SYSMIS=12).
+

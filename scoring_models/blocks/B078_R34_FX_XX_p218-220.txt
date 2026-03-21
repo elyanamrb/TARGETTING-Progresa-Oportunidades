@@ -1,0 +1,210 @@
+--- Page 218/284 ---
+
+COMPUTE EDAD2 = EDAD .
+
+IF (EDAD2>=8 & EDAD2<=15) EDAD815=1 .
+RECODE EDAD815 (SYSMIS=0) .
+
+IF (EDAD815=1) INM15=INMP .
+RECODE INM15 (SYSMIS=0) .
+
+EXECUTE .
+
+********INGRESO MESUAL DEL HOGAR INGRESO MENSUAL QUE APORTAN AL HOGAR LOS MENORES DE 15 AÑOS
+
+RENAME VARIABLES
+ent_fed = entidad / munici = mpio / locali = local .
+
+compute pyj =1.
+
+AGGREGATE
+/OUTFILE='e:\Fase8\punteo\REG_34\aggreg34.SAV'
+/BREAK=entidad mpio local folio .
+/INMP_1 = SUM(INMP) /INM15_1 = SUM(INM15) / peryjef = first(pyj) .
+
+********************************************************************************
+*************************************con el archivo de hogares***************
+********************************************************************************
+
+***pegar INMP_1 y INM15 del archivo de personas
+
+GET 
+FILE='e:\Fase8\punteo\REG_34\REG34J_25.sav'.
+EXECUTE .
+
+SORT CASES BY
+entidad (A) mpio (A) local (A) folio (A) .
+
+MATCH FILES /FILE=*
+/TABLE='e:\Fase8\punteo\REG_34\aggreg34.sav'
+/BY entidad mpio local folio.
+EXECUTE.
+
+SAVE OUTFILE='e:\Fase8\punteo\REG_34\REG34J_25.sav'
+/COMPRESSED.
+
+COMPUTE INMH15PC = (INMP_1 - INM15_1) / TOTPERS .
+
+***calcular ventiles de ingreso
+***calcular el logaritmo natural del ingreso per cápita
+
+SORT CASES BY
+inmh15pc (A) .
+
+COMPUTE LNIN15PC = LN(INMH15PC+1).
+
+EXECUTE.
+
+***imputación de valores obtenidos en SAS para el análisis de discriminante
+
+***************  PESOS DE LA REGION 34
+
+IF(PISO1=     1      )      PISO_1=        -0.764  .
+IF(PISO1=     2      )      PISO_1=         1.057  .
+IF(PISO1=     3      )      PISO_1=         2.074  .
+IF(PARED1=    1      )      PARED_1=       -0.610  .
+IF(PARED1=    2      )      PARED_1=        0.792  .
+IF(PARED1=    3      )      PARED_1=       -0.876  .
+IF(PARED1=    4      )      PARED_1=       -0.761  .
+IF(PARED1=    5      )      PARED_1=       -0.831  .
+IF(PARED1=    6      )      PARED_1=        0.450  .
+IF(PARED1=    7      )      PARED_1=       -0.773  .
+
+218/284
+
+--- Page 219/284 ---
+
+IF(PARED1=    8      )      PARED_1=       -0.233  .
+IF(PARED1=    9      )      PARED_1=       -3.938  .
+IF(PARED1=   10      )      PARED_1=        0.539  .
+IF(PARED1=   11      )      PARED_1=       -0.069  .
+IF(PARED1=   12      )      PARED_1=       -0.007  .
+IF(PARED1=   13      )      PARED_1=       11.624  .
+IF(AGUABA1=   1      )      AGUABA_1=      -0.033  .
+IF(AGUABA1=   2      )      AGUABA_1=      -0.866  .
+IF(AGUABA1=   3      )      AGUABA_1=      -0.095  .
+IF(AGUABA1=   4      )      AGUABA_1=       0.934  .
+IF(AGUABA1=   5      )      AGUABA_1=      -0.177  .
+IF(AGUABA1=   6      )      AGUABA_1=       1.280  .
+IF(AGUABA1=   7      )      AGUABA_1=       2.115  .
+IF(AGUABA1=   8      )      AGUABA_1=       3.233  .
+IF(OCUPJ1=    0      )      OCUPJ_1=        0.299  .
+IF(OCUPJ1=    1      )      OCUPJ_1=       -0.939  .
+IF(OCUPJ1=    2      )      OCUPJ_1=        0.850  .
+IF(OCUPJ1=    3      )      OCUPJ_1=        0.622  .
+IF(OCUPJ1=    4      )      OCUPJ_1=       -0.299  .
+IF(OCUPJ1=    5      )      OCUPJ_1=        2.056  .
+IF(OCUPJ1=    6      )      OCUPJ_1=        0.878  .
+IF(OCUPJ1=    7      )      OCUPJ_1=       -1.623  .
+IF(OCUPJ1=    8      )      OCUPJ_1=        1.879  .
+IF(OCUPJ1=    9      )      OCUPJ_1=        1.560  .
+IF(AGUA1=     1      )      AGUA_1=         0.321  .
+IF(AGUA1=     2      )      AGUA_1=        -0.658  .
+IF(AGUA1=     3      )      AGUA_1=         2.386  .
+IF(BAO1=      1      )      BAO_1= -0.578  .
+IF(BAO1=      2      )      BAO_1= 0.294   .
+IF(BAO1=      3      )      BAO_1= 2.963   .
+
+EXECUTE.
+
+***cálculo de medias para verificar tendencias
+
+IF (INMH15PC <= 409.3) LP98 = 1 .
+IF (INMH15PC > 409.3) LP98 = 0 .
+
+EXECUTE.
+
+SAVE OUTFILE='e:\Fase8\punteo\REG_34\REG34J_25.sav'
+/COMPRESSED.
+
+MEANS
+TABLES=lp98  BY piso1 pared1 aguaba1 ocupj agua1 bao1
+/CELLS MEAN .
+
+***análisis de discriminante
+
+DISCRIMINANT
+/GROUPS=lp98(0 1)
+/VARIABLES=depen ninos trab151 hacina esc  discap  piso_1
+radio tv licua aguaba_1  estgas vehi
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS = 42 .58
+/STATISTICS=RAW TABLE
+/CLASSIFY=NONMISSING POOLED .
+
+219/284
+
+--- Page 220/284 ---
+
+********************************************************************************
+***************************Programa para calcular los hogares beneficiarios de la OCTAVA FASE del programa**************
+********************************************************************************
+
+*****                       DE LA REGION 34                      *****
+
+********************************************************************************
+************************************con el archivo de hogares************************************
+********************************************************************************
+
+***se llama el archivo regj_# dbf en la región que se va a trabajar y guardar con extensión .sav
+
+GET FILE='E:\Fase8\punteo\calificar\990920\jefes.sav' .
+EXECUTE
+
+FILTER OFF.
+USE ALL.
+SELECT IF(region = 34).
+EXECUTE
+
+SAVE OUTFILE='E:\Fase8\punteo\REG_34\REG34J_25.sav'
+ /COMPRESSED.
+
+*****Se cambian las variables: edad,dias_tra,num_hec,caballos,burros,bueyes,chivos,reses,gallinas,cerdos,conejos,totpers
+
+COMPUTE EJ = edad .
+COMPUTE NUM_DIAS = dias_tra .
+COMPUTE ANIM1 = caballos .
+COMPUTE ANIM2 = burros .
+COMPUTE ANIM3 = bueyes .
+COMPUTE ANIM4 = chivos .
+COMPUTE ANIM5 = reses .
+COMPUTE ANIM6 = gallinas .
+COMPUTE ANIM7 = cerdos .
+COMPUTE ANIM8 = conejos .
+COMPUTE TOTPER = totpers .
+
+****Recodificación del nombre de algunas variables
+
+RENAME VARIABLES
+ent_fed = entidad / munici = mpio / locali = local / res_entr = result
+/ habla_di = lengua / hab_dia_ = leng_mas / habla_es = leng_esp
+/ yer_con_ = verifrab / pos_ocu = ocupj / seg_soc_ = seg_mas
+/ per_ocu = per_ocup / edad_pri = ej_1ertf / v30 = tiem_mas / lug_trab = tiem_lug
+/ mes_trab = tiem_mes / din_env = tiem_din / din_env_ = tiem_mdl / piso_viv = piso
+/ tech_viv = techo / muro_viv = muro / exc_viv = bao / exc_agua = bao_agua / luz_ele = luz
+/ licuador = licua / est_gas = estgas / televis = tv / videocas = vhs / tierr_ag = tierra
+/ cu_tt_ag = predios / luz_ele = luz / lavadora = lava .
+
+***Recodificación de variables
+
+RECODE num_hog result tot_per sexo lengua leng_mas leng_esp
+leer_esc ido_esc ult_niv asi_esc con_tra verifrab con_inac
+ocupj seg_soc mot_no_t ej_1ertf trab_tem tiem_mas tiem_lug
+edo_civ conyuge nin_sol tortilla tit_tort leche tit_lech es_ciega
+es_muda es_sorda es_menta es_falta es_ayuda emigro sit_viv piso
+techo muro tot_cuar agua_ter agua_viv bao bao_agua tierra
+totper (0=SYSMIS) .
+
+DO IF (tierra = 2 | tierra = 9) .
+RECODE
+num_hec hect_rie hect_tem (0=SYSMIS) .
+END IF .
+EXECUTE .
+
+RECODE sexo lengua (2=0) (9=sysmis) .
+
+RECODE licua refri estgas cal_agua radio tocadisc tv vhs lava ventila animales luz (1=0) (9=sysmis).
+
+220/284
+

@@ -1,0 +1,166 @@
+Región 6. Montaña
+Fase 6
+Modelo bb
+
+SET MXMEMORY = 200000 .
+XECUTE .
+
+DISCRIMINANT
+/GROUPS=lp98 (0 1)
+/VARIABLES= depen ninos NOASI1 TRAB151 hacina esc ocupj_1 piso_l ej
+discap licua refri lava vehi pared_1
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS = .41 .59
+/STATISTICS=RAW TABLE
+/CLASSIFY=NONMISSING POOLED .
+
+COMPUTE bbDEPEN=-29*DEPEN.
+
+COMPUTE bbNINOS=-23*NINOS .
+
+COMPUTE bbNOASI =-27*NOASI1 .
+
+COMPUTE bbTRAB15=-30*TRAB151 .
+
+COMPUTE bbHACINA=-1*HACINA .
+
+COMPUTE bbESC=9*ESC .
+
+COMPUTE bbOCUP=-37*OCUPJ_1 .
+
+COMPUTE bbPISO=9*PISO_1 .
+
+COMPUTE bbEDAD=1*EJ .
+
+COMPUTE bbPARED=6*PARED_1 .
+
+IF (DISCAP =0) bbDISCAP = 100.
+IF (DISCAP =1) bbDISCAP = 69 .
+
+IF (LICUA=0) bbLICUA= 100.
+IF (LICUA=1) bbLICUA=81 .
+
+IF (REFRI=0) bbREFRI=100 .
+IF (REFRI=1) bbREFRI=91 .
+
+IF (LAVA=0) bbLAVA=100 .
+IF (LAVA=1) bbLAVA=59 .
+
+IF (VEHI=0) bbVEHI=100 .
+IF (VEHI=1) bbVEHI=56 .
+
+EXECUTE.
+
+COMPUTE input = 0 .
+DO IF ( MISSING(bbDEPEN) | MISSING(bbNINOS) | MISSING(bbNOASI)
+| MISSING(bbTRAB15) | MISSING(bbHACINA) | MISSING(bbESC)
+| MISSING(bbOCUP) | MISSING(bbPISO) | missing(bbEDAD) |
+missing(bbPARED) | missing(bbDISCAP) | MISSING(bbLICUA) |
+missing(bbREFRI) | missing(bbLAVA) | missing(bbVEHI) ) .
+RECODE
+input (0=1) .
+END IF .
+EXECUTE .
+
+FREQUENCIES
+VARIABLES= bbdepen bbninos bbnoasi bbtrab15 bbhacina bbesc bbocup bbpiso bbedad bbpared bbdiscap bblicua
+bbrefri bblava bbvehi
+/FORMAT=NOTABLE
+/STATISTICS=MEAN .
+
+--- Page 71/284 ---
+
+RECODE bbDEPEN (SYSMIS=-86.67).
+RECODE bbNINOS (SYSMIS=-41.25).
+RECODE bbNOASI (SYSMIS=-3.91).
+RECODE bbTRAB15 (SYSMIS=-1.51).
+ECODE bbHACINA (SYSMIS=-3.91).
+RECODE bbESC (SYSMIS=26.81).
+RECODE bbOCUP (SYSMIS=10.53).
+RECODE bbPISO (SYSMIS=.11).
+RECODE bbEDAD (SYSMIS=44.13).
+RECODE bbPARED (SYSMIS=-.4189) .
+RECODE bbDISCAP (SYSMIS=98.25).
+RECODE bbLICUA (SYSMIS=89.22).
+RECODE bbREFRI (SYSMIS=93.38) .
+RECODE bbLAVA (SYSMIS=59.91) .
+RECODE bbVEHI (SYSMIS=58.50) .
+
+COMPUTE bbcalif = bbDEPEN + bbNINOS + bbNOASI + bbTRAB15 + bbHACINA + bbESC + bbOCUP + bbPISO +
+bbEDAD + bbPARED + bbDISCAP + bbLICUA + bbREFRI + bbLAVA + bbVEHI .
+EXECUTE .
+
+***filtros
+
+DISCRIMINANT
+/GROUPS=LP98(0 1)
+/VARIABLES=bbcalif
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS =.41 .59
+/STATISTICS=raw TABLE crossvalid
+/CLASSIFY=NONMISSING POOLED .
+
+***checar el número del discriminante
+
+USE ALL.
+COMPUTE filter_$=(dis_1 = 0).
+VARIABLE LABEL filter_$ 'dis_1= 0 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+VARIABLES=bbcalif /FORMAT=NOTABLE
+/STATISTICS=MINIMUM .
+
+USE ALL.
+COMPUTE filter_$=(dis_1 = 1).
+VARIABLE LABEL filter_$ 'dis_1 = 1 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+VARIABLES=bbcalif /FORMAT=NOTABLE
+/STATISTICS= MAXIMUM .
+
+FILTER OFF.
+USE ALL.
+EXECUTE .
+
+***************
+
+((ult_niv=4 | ult_niv = 6 | ult_niv = 7) & seg_soc = 2) maestro = 1 .
+recode maestro (SYSMIS=0) .
+
+COMPUTE bbpobre = 0 .
+EXECUTE .
+DO IF (bbcalif< 420.33) .
+
+--- Page 72/284 ---
+
+RECODE
+bbpobre (0=1) .
+END IF .
+
+DO IF (bbpobre = 1 & maestro = 1) .
+RECODE
+bbpobre (1=0) .
+END IF .
+EXECUTE .
+
+IF (aapobre = 0 & bbpobre = 1) nvo_pob = 1 .
+RECODE nvo_pob (SYSMIS=0) .
+EXECUTE .
+
+CROSSTABS
+/TABLES=entidad BY nvo_pob
+/FORMAT= AVALUE TABLES
+/CELLS= COUNT .
+
+--- Page 73/284 ---
+

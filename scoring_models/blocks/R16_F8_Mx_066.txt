@@ -1,0 +1,16 @@
+Región 16. Pochutla
+Fase 8
+
+***discriminante con modelo nuevo
+
+DISCRIMINANT
+/GROUPS=lp98(0 1)
+/VARIABLES= lengua esc discap trab151 noasi1 vehi hacina
+depen ninos luz licua refri tv
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS .42 .58
+/STATISTICS=RAW TABLE
+/CLASSIFY=NONMISSING POOLED .
+
+***puntajes 

@@ -1,0 +1,174 @@
+REGIÓN 28. ALTIPLANO
+FASE 3
+MODELO bb
+
+
+DISCRIMINANT
+/GROUPS=lp98(0 1)
+/VARIABLES= hacina depen ninos ocupj_1 piso_1 mu15a49 trab151 hectie1 agua_1
+           vhs refri vehi lava radio estgas discap
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS = .41 .59
+/STATISTICS=raw TABLE CROSSVALID
+/CLASSIFY=NONMISSING POOLED .
+
+COMPUTE bbHACINA = -5*HACINA .
+COMPUTE bbDEPEN = -23*DEPEN .
+COMPUTE bbNINOS = -24*NINOS .
+COMPUTE bbOCUPJ = 90*OCUPJ_1 .
+COMPUTE bbPISO = 8*PISO_1 .
+COMPUTE bbMU15A = 8*MU15A49 .
+COMPUTE bbTRAB = 8*TRAB151 .
+COMPUTE bbHECTIE = 3*HECTIE1 .
+COMPUTE bbAGUA = 11*AGUA_1 .
+
+IF (VHS = 0) bbVHS = 100 .
+IF (VHS = 1) bbVHS = 69 .
+
+IF (REFRI = 0) bbREFRI = 100 .
+IF (REFRI = 1) bbREFRI = 115 .
+
+IF (VEHI = 0) bbVEHI = 100 .
+IF (VEHI = 1) bbVEHI = 77 .
+
+F (LAVA = 0) bbLAVA = 100 .
+IF (LAVA = 1) bbLAVA = 85 .
+
+IF (RADIO = 0) bbRADIO = 100 .
+IF (RADIO = 1) bbRADIO = 85 .
+
+IF (ESTGAS = 0) bbESTGAS= 100 .
+IF (ESTGAS = 1) bbESTGAS = 91.
+
+IF (DISCAP = 0) bbDISCAP = 100 .
+IF (DISCAP = 1) bbDISCAP = 81.
+
+EXECUTE.
+
+FREQUENCIES
+   VARIABLES= bbhacina bbdepen bbninos bbocupj bbpiso bbmu15a bbtrab bbhectie bbagua
+           bbvhs bbrefri bbvehi bblava bbradio bbestgas bbdiscap
+   /FORMAT=NOTABLE
+   /STATISTICS=MEAN .
+
+COMPUTE bbinput = 0 .
+EXECUTE .
+DO IF (MISSING(bbhacina) | MISSING(bbdepen) | MISSING(bbninos) | MISSING(bbocupj) | MISSING(bbpiso)
+  | MISSING(bbmu15a) | MISSING(bbtrab) | MISSING (bbhectie) | MISSING (bbagua)
+  | MISSING(bbvhs) | MISSING(bbrefri) | MISSING(bbvehi) | MISSING(bblava)
+  | MISSING(bbradio) | MISSING(bbestgas) | MISSING(bbdiscap)) .
+RECODE
+  bbinput (0=1) .
+END IF .
+EXECUTE .
+
+RECODE bbhacina (SYSMIS = -12.0449) .
+RECODE bbdepen (SYSMIS = -52.8718) .
+RECODE bbninos (SYSMIS = -34.4606) .
+RECODE bbocupj (SYSMIS = 42.1463).
+RECODE bbpiso (SYSMIS = 1.6544) .
+RECODE bbmu15a (SYSMIS = 9.0671) .                195/284
+
+--- Page 196/284 ---
+
+RECODE bbtrab (SYSMIS = 0.3637) .
+RECODE bbhectie (SYSMIS = 24.3088) .
+RECODE bbagua (SYSMIS = -1.7249) .
+RECODE bbvhs (SYSMIS = 72.9850) .
+RECODE bbrefri (SYSMIS = 108.9380) .
+RECODE bbvehi (SYSMIS = 83.3627) .
+RECODE bblava (SYSMIS = 90.0817) .
+RECODE bbradio (SYSMIS = 96.1613) .
+RECODE bbestgas (SYSMIS = 97.8581) .
+RECODE bbdiscap (SYSMIS = 98.7515) .
+
+COMPUTE bbcalif = bbhacina + bbdepen + bbninos + bbocupj + bbpiso + bbmu15a + bbtrab + bbhectie + bbagua
+        + bbvhs + bbrefri + bbvehi + bblava + bbradio + bbestgas + bbdiscap .
+EXECUTE .
+
+DISCRIMINANT
+/GROUPS=LP98(0 1)
+/VARIABLES=bbcalif
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS .41 .59
+/STATISTICS=raw TABLE crossvalid
+/CLASSIFY=NONMISSING POOLED .
+
+USE ALL.
+COMPUTE filter_$=(dis_2 = 0).
+VARIABLE LABEL filter_$ 'dis_2 = 0 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+   VARIABLES=bbcalif
+   /FORMAT=NOTABLE
+   /STATISTICS=MINIMUM .
+
+USE ALL.
+COMPUTE filter_$=(dis_2 = 1).
+VARIABLE LABEL filter_$ 'dis_2 = 1 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+   VARIABLES=bbcalif
+   /FORMAT=NOTABLE
+   /STATISTICS= MAXIMUM .
+
+FILTER OFF.
+USE ALL.
+EXECUTE .
+
+COMPUTE VIEJITOS = 0 .
+IF ((ej < 25 & TOTPER < 5) | (ej > 65 & ej < 98 & TOTPER < 3)) VIEJITOS = -100 .
+RECODE viejitos (SYSMIS=0) .
+EXECUTE.
+
+IF (agua1=1 & luz=1 & piso= 1) indis= -100 .
+RECODE indis (SYSMIS=0) .
+EXECUTE .
+
+IF (Refri = 1 & ESTGAS = 1 & LICUA = 1) COCINA = - 100 .
+RECODE COCINA (SYSMIS = 0) .
+execute.
+
+COMPUTE bbcalif1=bbcalif + viejitos + indis + cocina.
+execute .
+
+COMPUTE bbpobre = 0 .
+DO IF (bbcalif1< 684.03) .                         196/284
+
+--- Page 197/284 ---
+
+RECODE
+bbpobre (0=1) .
+END IF .
+EXECUTE .
+
+COMPUTE nvopob = 0 .
+DO IF (aapobre = 0 & bbpobre=1) .
+RECODE
+nvopob (0=1) .
+END IF .
+EXECUTE .
+
+IF ((ULT_NIV=4 | ULT_NIV=6 | ULT_NIV=7) & SEG_SOC=2) MAESTRO=1 .
+
+DO IF (MAESTRO=1) .
+RECODE
+NVOP (1=0) .
+END IF .
+EXECUTE .
+
+FREQUENCIES
+VARIABLES= bbpobre lp98 .
+
+--- Page 198/284 ---
+

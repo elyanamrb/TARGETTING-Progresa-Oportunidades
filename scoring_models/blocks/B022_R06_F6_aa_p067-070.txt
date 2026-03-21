@@ -1,0 +1,269 @@
+--- Page 67/284 ---
+
+Región 6. Montaña
+Fase 6
+Modelo aa
+
+SET MXMEMORY = 200000 .
+EXECUTE .
+
+DISCRIMINANT
+/GROUPS=lp98 (0 1)
+/VARIABLES= depen ninos NOASI1 TRAB151 hacina esc ocupj_1 piso_1 ej
+discap licua tv refri lava vehi pared_1
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS = .42 .58
+/STATISTICS=RAW TABLE
+/CLASSIFY=NONMISSING POOLED .
+
+COMPUTE AADEPEN=-18*DEPEN.
+
+COMPUTE AANINOS=-19*NINOS .
+
+COMPUTE AANOASI =-2*NOASI1 .
+
+COMPUTE AATRAB15=-45*TRAB151 .
+
+COMPUTE AAHACINA=-1*HACINA .
+
+COMPUTE AAESC=14*ESC .
+
+COMPUTE AAOCUP-41*OCUPJ_1 .
+
+COMPUTE AAPISO=9*PISO_1 .
+
+OMPUTE AAEDAD=1*EJ .
+
+COMPUTE AAPARED=17*PARED_1 .
+
+IF (DISCAP =0) AADISCAP = 100.
+IF (DISCAP =1) AADISCAP = 90 .
+
+IF (LICUA=0) AALICUA= 100.
+IF (LICUA=1) AALICUA=66 .
+
+if (TV=0) AATV = 100.
+IF (TV=1) AATV = 76 .
+
+IF (REFRI=0) AAREFRI=100 .
+IF (REFRI=1) AAREFRI=66 .
+
+IF (LAVA=0) AALAVA=100 .
+IF (LAVA=1) AALAVA=67 .
+
+IF (VEHI=0) AAVEHI=100 .
+IF (VEHI=1) AAVEHI=61 .
+
+EXECUTE.
+
+COMPUTE input = 0 .
+DO IF ( MISSING(AADEPEN) | MISSING(AANINOS) | MISSING(AANOASI)
+| MISSING(AATRAB15) | MISSING(AAHACINA) | MISSING(AAESC)
+| MISSING(AAOCUP) | MISSING(AAPISO) | missing(AAEDAD) |
+missing(AAPARED) | missing(AADISCAP) | MISSING(AALICUA) |
+MISSING(AATV) | missing(AAREFRI) | missing(AALAVA) | missing(AAVEHI) ) .
+RECODE
+input (0=1) .
+END IF .
+EXECUTE .
+
+67/284
+
+--- Page 68/284 ---
+
+FREQUENCIES
+VARIABLES= aadepen aaninos aanoasi aatrab15 aahacina aaesc aaocup aapiso aaedad aapared aadiscap aalicua
+aatv aarefri aalava aavehi
+/FORMAT=NOTABLE
+/STATISTICS=MEAN .
+
+RECODE AADEPEN (SYSMIS=-21.46).
+RECODE AANINOS (SYSMIS=-15.70).
+RECODE AANOASI (SYSMIS=-0.01).
+RECODE AATRAB15 (SYSMIS=-2.28).
+RECODE AAHACINA (SYSMIS=-2.87).
+RECODE AAESC (SYSMIS=45.65).
+RECODE AAOCUP (SYSMIS=-11.89).
+RECODE AAPISO (SYSMIS=-5.67).
+RECODE AAEDAD (SYSMIS=44.13).
+RECODE AAPARED (SYSMIS=-1.90) .
+RECODE AADISCAP (SYSMIS=99.57).
+RECODE AALICUA (SYSMIS=70.93).
+RECODE AATV (SYSMIS=79.13).
+RECODE AAREFRI (SYSMIS=66.00) .
+RECODE AALAVA (SYSMIS=67.00) .
+RECODE AAVEHI (SYSMIS=61.00) .
+
+COMPUTE aacalif = AADEPEN + AANINOS + AANOASI + AATRAB15 + AAHACINA + AAESC + AAOCUP + AAPISO +
+AAEDAD + AAPARED + AADISCAP + AALICUA + AATV +
+AAREFRI + AALAVA + AAVEHI .
+EXECUTE .
+
+***filtros
+
+IF ((ej < 25 & TOTPER < 5) | (ej > 65 & ej < 98 & TOTPER < 3)) VIEJITOS = -100 .
+RECODE VIEJITOS (SYSMIS=0) .
+
+COMPUTE aacalif1 = aacalif + VIEJITOS .
+
+EXECUTE.
+
+***La línea de corte
+
+COMPUTE aapobre = 0 .
+EXECUTE .
+DO IF (aacalif1< 502.38) .
+RECODE
+aapobre (0=1) .
+END IF .
+EXECUTE .
+
+IF (VEHI=0) aapobre = 0.
+EXECUTE.
+
+FREQUENCIES
+VARIABLES= LP98 aapobre .
+
+COMPUTE FECHA = 981216 .
+
+COMPUTE FOPO = 18 .
+
+EXECUTE.
+
+SAVE OUTFILE='E:\4_5Y6fas\punteo\REG_6\reg6j_18.sav'
+/COMPRESSED.
+
+AGGREGATE
+/OUTFILE='E:\4_5Y6fas\punteo\REG_6\AGGR.SAV'
+/BREAK=entidad mpio local folio
+/aapobre = FIRST(aapobre).
+
+GET
+FILE='E:\4_5Y6fas\punteo\REG_6\Aggr.sav'.
+EXECUTE .
+
+68/284
+
+--- Page 69/284 ---
+
+FILTER OFF.
+USE ALL.
+SELECT IF(aapobre = 1).
+EXECUTE .
+
+SAVE TRANSLATE OUTFILE='E:\4_5Y6fas\punteo\REG_6\fopo6_18.dbf'
+/TYPE=DB4 /MAP /REPLA.
+
+***LOCS
+
+***crear archivo de control
+
+GET
+FILE='E:\4_5y6fas\PUNTEO\REG_6\reg6j_18.sav'.
+EXECUTE .
+
+IF (aapobre = 1) FOLPOB = 1.
+IF (aapobre = 1) PERPOB = TOTPER .
+RECODE FOLPOB PERPOB (SYSMIS = 0) .
+
+COMPUTE X = 1 .
+
+EXECUTE.
+
+SAVE OUTFILE='E:\4_5y6fas\punteo\REG_6\reg6j_18.sav'
+/COMPRESSED.
+
+AGGREGATE
+/OUTFILE='E:\4_5y6fas\punteo\reg_6\locs6_18.sav'
+/BREAK=entidad mpio local
+/hoglocal = SUM(x) /totper_l = SUM(totper) /hogpobre = SUM(folpob) /perpob_l =
+SUM(perpob) /region = FIRST(region) /fecha = FIRST(fecha) / fopo = FIRST(fopo) .
+
+ET
+FILE='E:\4_5y6fas\punteo\reg_6\locs6_18.sav'.
+EXECUTE .
+
+SAVE TRANSLATE OUTFILE='E:\4_5y6fas\PUNTEO\LOCALS\981216\locs6_18.dbf '
+/TYPE=DB4
+/COMPRESSED.
+
+***filtros para recuperar pobres
+
+IF (BAO1 = 1 & AGUA1 = 1 & PISO1 = 1) INDISPEN = - 100 .
+IF (RADIO = 1 & ESTGAS = 1 & LICUA = 1) COSINA = - 100 .
+RECODE INDISPEN COSINA (SYSMIS = 0) .
+
+--- Page 70/284 ---
+
+Región 6. Montaña
+Fase 6
+Modelo bb
+
+SET MXMEMORY = 200000 .
+XECUTE .
+
+DISCRIMINANT
+/GROUPS=lp98 (0 1)
+/VARIABLES= depen ninos NOASI1 TRAB151 hacina esc ocupj_1 piso_l ej
+discap licua refri lava vehi pared_1
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS = .41 .59
+/STATISTICS=RAW TABLE
+/CLASSIFY=NONMISSING POOLED .
+
+COMPUTE bbDEPEN=-29*DEPEN.
+
+COMPUTE bbNINOS=-23*NINOS .
+
+COMPUTE bbNOASI =-27*NOASI1 .
+
+COMPUTE bbTRAB15=-30*TRAB151 .
+
+COMPUTE bbHACINA=-1*HACINA .
+
+COMPUTE bbESC=9*ESC .
+
+COMPUTE bbOCUP=-37*OCUPJ_1 .
+
+COMPUTE bbPISO=9*PISO_1 .
+
+COMPUTE bbEDAD=1*EJ .
+
+COMPUTE bbPARED=6*PARED_1 .
+
+IF (DISCAP =0) bbDISCAP = 100.
+IF (DISCAP =1) bbDISCAP = 69 .
+
+IF (LICUA=0) bbLICUA= 100.
+IF (LICUA=1) bbLICUA=81 .
+
+IF (REFRI=0) bbREFRI=100 .
+IF (REFRI=1) bbREFRI=91 .
+
+IF (LAVA=0) bbLAVA=100 .
+IF (LAVA=1) bbLAVA=59 .
+
+IF (VEHI=0) bbVEHI=100 .
+IF (VEHI=1) bbVEHI=56 .
+
+EXECUTE.
+
+COMPUTE input = 0 .
+DO IF ( MISSING(bbDEPEN) | MISSING(bbNINOS) | MISSING(bbNOASI)
+| MISSING(bbTRAB15) | MISSING(bbHACINA) | MISSING(bbESC)
+| MISSING(bbOCUP) | MISSING(bbPISO) | missing(bbEDAD) |
+missing(bbPARED) | missing(bbDISCAP) | MISSING(bbLICUA) |
+missing(bbREFRI) | missing(bbLAVA) | missing(bbVEHI) ) .
+RECODE
+input (0=1) .
+END IF .
+EXECUTE .
+
+FREQUENCIES
+VARIABLES= bbdepen bbninos bbnoasi bbtrab15 bbhacina bbesc bbocup bbpiso bbedad bbpared bbdiscap bblicua
+bbrefri bblava bbvehi
+/FORMAT=NOTABLE
+/STATISTICS=MEAN .
+

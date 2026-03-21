@@ -1,0 +1,261 @@
+--- Page 269/284 ---
+
+*** PUNTAJES DE L A REGION 44
+**/ FASE 44 6
+**/ MODELO BB
+
+DISCRIMINANT
+/GROUPS=lp98(0 1)
+/VARIABLES= depen ninos vhs refri ocupj_1 vehi lengua mu15a49 radio trab151 estgas noasi1 hectie1 tv pared_1 discap agua_1
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS .41 .59
+/STATISTICS=RAW TABLE
+/CLASSIFY=NONMISSING POOLED .
+
+***puntajes
+
+COMPUTE bbDEPEN = -34*DEPEN .
+COMPUTE bbNINOS = -15*NINOS .
+COMPUTE bbOCUPJ = 74*OCUPJ_1 .
+COMPUTE bbMU15A = -1*MU15A49 .
+COMPUTE bbTRAB = -11*TRAB151 .
+COMPUTE bbNOASI = -33*NOASI1 .
+COMPUTE bbHECTIE = 4*HECTIE1 .
+COMPUTE bbPARED = -19*PARED_1 .
+COMPUTE bbAGUA = -20*AGUA_1 .
+
+IF (VHS = 0) bbVHS = 100 .
+IF (VHS = 1) bbVHS = 79 .
+
+IF (REFRI = 0) bbREFRI = 100 .
+IF (REFRI = 1) bbREFRI = 75 .
+
+IF (VEHI = 0) bbVEHI = 100 .
+IF (VEHI = 1) bbVEHI = 65 .
+
+IF (LENGUA = 0) bbLENGUA = 100 .
+IF (LENGUA = 1) bbLENGUA = 114 .
+
+IF (RADIO = 0) bbRADIO = 100 .
+IF (RADIO = 1) bbRADIO = 102 .
+
+. (ESTGAS = 0) bbESTGAS = 100 .
+  (ESTGAS = 1) bbESTGAS = 93 .
+
+IF (TV = 0) bbTV = 100 .
+IF (TV = 1) bbTV = 87 .
+
+IF (DISCAP = 0) bbDISCAP = 100 .
+IF (DISCAP = 1) bbDISCAP = 83 .
+
+EXECUTE.
+
+***calcular las medias de las variables para imputar a valores perdidos
+
+FREQUENCIES
+  VARIABLES= bbdepen bbninos bbocupj bbmu15a bbtrab bbnoasi bbhectie bbpared bbagua
+  bbvhs bbrefri bbvehi bblengua bbradio bbestgas bbtv bbdiscap
+  /FORMAT=NOTABLE
+  /STATISTICS=MEAN .
+
+COMPUTE bbinput = 0 .
+EXECUTE .
+DO IF (MISSING(bbdepen) | MISSING(bbninos) | MISSING (bbocupj)| MISSING (bbmu15a)| MISSING (bbtrab)
+  | MISSING(bbnoasi) | MISSING(bbhectie) | MISSING (bbpared) | MISSING(bbagua) | MISSING (bbvhs)
+  | MISSING(bbrefri) | MISSING (bbvehi)| MISSING(bblengua) | MISSING (bbradio)| MISSING(bbestgas) |MISSING(bbtv)
+|MISSING(bbdiscap)) .
+RECODE
+  bbinput (0=1) .
+END IF .
+EXECUTE .
+
+***se recodifican los valores perdidos con las medias de las variables
+
+RECODE bbdepen (SYSMIS = -86.9838) .
+RECODE bbninos (SYSMIS = -21.8781) .
+RECODE bbocupj (SYSMIS = 28.1384) .
+RECODE bbmu15a (SYSMIS = -1.0531) .
+RECODE bbtrab (SYSMIS = -0.4706) .
+RECODE bbnoasi (SYSMIS = -3.9140) .
+RECODE bbhectie (SYSMIS = 11.7069) .
+RECODE bbpared (SYSMIS = 8.4596) .
+RECODE bbagua (SYSMIS = 2.3238) .
+
+269/284
+
+--- Page 270/284 ---
+
+RECODE bbvhs (SYSMIS = 81.6262) .
+RECODE bbrefri (SYSMIS = 82.7835) .
+RECODE bbvehi (SYSMIS = 68.5981) .
+RECODE bblengua (SYSMIS = 101.4647) .
+RECODE bbradio (SYSMIS = 100.6142) .
+RECODE bbestgas (SYSMIS = 96.7998) .
+RECODE bbtv (SYSMIS = 95.3602) .
+RECODE bbdiscap (SYSMIS = 99.0889) .
+
+***se hace la calificación
+
+COMPUTE bbcalif = bbdepen + bbninos + bbocupj + bbmu15a + bbtrab + bbnoasi + bbhectie + bbpared + bbagua +
+  bbvhs + bbrefri + bbvehi + bblengua + bbradio + bbestgas + bbtv + bbdiscap .
+EXECUTE .
+
+***discriminante con la línea de pobreza
+
+DISCRIMINANT
+  /GROUPS=LP98(0 1)
+  /VARIABLES=bbcalif
+  /ANALYSIS ALL
+  /SAVE=CLASS
+  /PRIORS .41 .59
+  /STATISTICS=raw TABLE crossvalid
+  /CLASSIFY=NONMISSING POOLED .
+
+USE ALL.
+COMPUTE filter_$=(dis_2 = 0).
+VARIABLE LABEL filter_$ 'dis_2 = 0 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+  VARIABLES=bbcalif
+  /FORMAT=NOTABLE
+  /STATISTICS=MINIMUM .
+
+USE ALL.
+OMPUTE filter_$=(dis_2 = 1).
+ARIABLE LABEL filter_$ 'dis_2 = 1 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+  VARIABLES=bbcalif
+  /FORMAT=NOTABLE
+  /STATISTICS= MAXIMUM .
+
+FILTER OFF.
+USE ALL.
+EXECUTE .
+
+***se determin
+a la línea de corte y se obtienen los pobres
+
+IF ((EJ<= 24 & totper <= 4) | (EJ >= 65 & totper <= 2)) viejitos = -100.
+  recode viejitos (SYSMIS = 0) .
+EXECUTE .
+
+COMPUTE bbcalif1 = bbcalif + viejitos .
+EXECUTE .
+
+COMPUTE BBpobre= 0 .
+EXECUTE .
+DO IF (bbcalif1< 723.005) .
+RECODE
+  BBpobre (0=1) .
+END IF .
+EXECUTE .
+
+**** Recodificación por vehículo
+
+DO IF (vehi = 0 & BBpobre = 1) .
+RECODE
+  BBpobre (1=0) .
+
+270/284
+
+--- Page 271/284 ---
+
+END IF .
+EXECUTE .
+
+DO IF (aapobre = 1) .
+RECODE
+  bbpobre (1=0) .
+END IF .
+EXECUTE .
+
+FREQUENCIES
+  VARIABLES= bbpobre lp98 .
+
+271/284
+
+--- Page 272/284 ---
+
+REGIÓN 45. VALLE DE SAN QUINTIN
+FASE 6
+MODELO aa
+
+DISCRIMINANT
+/GROUPS=lp98(0 1)
+/VARIABLES= ninos mu15a49 depen trab151 ej
+piso_1 ocupj_1 discap esc
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS=0.42 0.58
+/STATISTICS=RAW
+/HISTORY
+/CLASSIFY=NONMISSING POOLED .
+
+COMPUTE AANINOS=-32*NINOS .
+COMPUTE AAMU1549=31*MU15A49.
+COMPUTE AADEPEN=-43*DEPEN.
+COMPUTE AAT15 =-89*TRAB151 .
+COMPUTE AAEDAD=-1*ej .
+COMPUTE AAPISO=15*PISO_1 .
+COMPUTE AAOCUP=-56*OCUPJ_1 .
+COMPUTE AAESC=5*ESC .
+
+IF (DISCAP =0) AADISCAP = 100.
+IF (DISCAP =1) AADISCAP = 52 .
+
+FREQUENCIES
+  VARIABLES= AANINOS AAMU1549 AADEPEN AAT15 AAEDAD AAPISO AAOCUP AAESC AADISCAP
+  /FORMAT=NOTABLE
+  /STATISTICS=MEAN .
+
+COMPUTE input = 0 .
+EXECUTE .
+DO IF ( MISSING(AANINOS) | MISSING(AAMU1549) | MISSING(AADEPEN) | MISSING(AAT15)
+  | MISSING(AAEDAD) | MISSING(AAPISO) | MISSING(AAOCUP) | MISSING(AAESC) | MISSING(AADISCAP) ) .
+RECODE
+  input (0=1) .
+END IF .
+EXECUTE .
+
+RECODE AANINOS (SYSMIS=-53.02) .
+RECODE AAmu1549 (SYSMIS=33).
+RECODE AADEPEN (SYSMIS=-86.38) .
+RECODE AAT15 (SYSMIS=-7.78).
+RECODE AAEDAD (SYSMIS=-39.45).
+RECODE AAPISO (SYSMIS=-7.21).
+RECODE AAOCUP (SYSMIS=50.61).
+RECODE AAESC (SYSMIS=20.67).
+RECODE AADISCAP (SYSMIS=98.87).
+
+COMPUTE AAcalif = AADEPEN + AANINOS + AAmu1549 + AAT15 + AAESC + AAOCUP + AAEDAD + AAPISO + AADISCAP.
+EXECUTE .
+
+DISCRIMINANT
+  /GROUPS=lp98(0 1)
+  /VARIABLES=AAcalif
+  /ANALYSIS ALL
+  /SAVE=CLASS
+  /PRIORS = .42 .58
+  /STATISTICS=raw TABLE CROSSVALID
+  /CLASSIFY=NONMISSING POOLED .
+
+USE ALL.
+OMPUTE filter_$=(dis_2 = 0).
+VARIABLE LABEL filter_$ 'dis_2 = 0 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+272/284
+

@@ -1,0 +1,145 @@
+REGION 47
+*/*/ FASE 8
+*/*/ MODELO AA
+
+IF (seg_soc <= 1 & seg_soc <= 5) seg_soc1 = 0 .
+EXECUTE .
+RECODE
+  seg_soc1 (SYSMIS=1) .
+EXECUTE .
+
+FREQUENCIES
+  VARIABLES=depen trab151 seg_soc1 ninos vehi
+  /FORMAT=NOTABLE
+  /STATISTICS=MEAN .
+
+DISCRIMINANT
+  /GROUPS=lp98(0 1)
+  /VARIABLES=depen trab151 seg_soc1 ninos vehi
+  /ANALYSIS ALL
+  /PRIORS EQUAL
+  /STATISTICS=raw TABLE CROSSVALID
+  /CLASSIFY=NONMISSING POOLED .
+
+***Calificación
+
+IF (PERCEP = 0) DEPEN = 99 .
+RECODE DEPEN (99 = SYSMIS) .
+
+COMPUTE aadepen = -32*DEPEN .
+COMPUTE aatrab15 = -249*TRAB151 .
+COMPUTE aaninos = -29*NINOS .
+
+IF (seg_soc1 = 0) aasegsoc = 100 .
+IF (seg_soc1 = 1) aasegsoc = 52.38 .
+
+IF (vehi = 0) aavehi = 100 .
+IF (vehi = 1) aavehi = 50.15 .
+
+FREQUENCIES
+  VARIABLES= AADEPEN AATRAB15 AANINOS AASEGSOC AAVEHI
+  /FORMAT=NOTABLE
+  /STATISTICS=MEAN .
+
+COMPUTE input = 0 .
+EXECUTE .
+DO IF ( MISSING(AADEPEN) | MISSING(AATRAB15) | MISSING(AANINOS) |
+  missing(AASEGSOC) | missing(AAVEHI)) .
+RECODE
+  input (0=1) .
+END IF .
+EXECUTE .
+
+*********************************************************
+
+RECODE AADEPEN (SYSMIS=-62.28) .
+RECODE AATRAB15 (SYSMIS=-9.29) .
+RECODE AANINOS (SYSMIS=-35.84) .
+RECODE AASEGSOC (SYSMIS=68.25) .
+RECODE AAVEHI (SYSMIS=71.96) .
+
+COMPUTE AAcalif = AADEPEN + AATRAB15 + AANINOS + AASEGSOC + AAVEHI .
+EXECUTE .
+
+DISCRIMINANT
+  /GROUPS=LP98(0 1)
+  /VARIABLES=AAcalif
+  /ANALYSIS ALL
+  /SAVE=CLASS
+  /PRIORS EQUAL
+  /STATISTICS=raw TABLE CROSSVALID
+  /CLASSIFY=NONMISSING POOLED .
+
+USE ALL.
+COMPUTE filter_$=(dis_1 = 0).
+VARIABLE LABEL filter_$ 'dis_1 = 0 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+
+--- Page 283/284 ---
+
+VARIABLES=AAcalif
+/FORMAT=NOTABLE
+/STATISTICS=MINIMUM .
+
+USE ALL.
+COMPUTE filter_$=(dis_1 = 1).
+VARIABLE LABEL filter_$ 'dis_1 = 1 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+   VARIABLES=AAcalif
+   /FORMAT=NOTABLE
+   /STATISTICS= MAXIMUM .
+
+FILTER OFF.
+USE ALL.
+EXECUTE .
+
+compute VIEJITOS = 0 .
+execute.
+do if (((EJ<25 & TOTPER<5) | (EJ>65 & TOTPER <3)) & (SEG_SOC1 = 1)) .
+recode
+   VIEJITOS (0=1).
+end if.
+execute.
+
+IF (VIEJITOS = 1) AAVIEJ = -100 .
+RECODE AAVIEJ (SYSMIS = 0) .
+EXECUTE .
+
+COMPUTE AAcalif = AAcalif + AAVIEJ.
+EXECUTE .
+
+COMPUTE AApobre = 0 .
+EXECUTE .
+DO IF (AAcalif < 23.69) .
+RECODE
+   pobre (0=1) .
+END IF .
+EXECUTE .
+
+IF (SEG_SOC > 0 & SEG_SOC < 6) SEGURO = 1 .
+IF (FAM_ENTR >= 1 & FAM_ENTR <= 7) FAM_BIEN = 1 .
+
+IF ((SEGURO = 1 | FAM_BIEN = 1) & AAPOBRE = 1) ELIMIN = 1 .
+
+RECODE SEGURO FAM_BIEN ELIMIN (SYSMIS = 0) .
+
+IF (ELIMIN = 1) AAPOBRE = 0 .
+
+EXECUTE .
+
+FREQUENCIES
+   VARIABLES=LP98 AAPOBRE .
+
+--- Page 284/284 ---
+
+*/*/ PUNTAJES DE LA 

@@ -1,0 +1,331 @@
+--- Page 14/284 ---
+
+REGIÓN 2. SIERRA
+FASE 2
+MODELO yy
+
+DISCRIMINANT
+/GROUPS=lpnva(0 1)
+/VARIABLES= depen ninos trab15 noasi5 hh2 hh3 hh4 hh5 hh6 escj1 escj2 escj3
+    ocupj1 ocupj2 ocupj3_4 ocupj5_9 ej2 ej3 ej4 ej5 ej6 licua tv estgas discap
+/ANALYSIS ALL
+/save=class
+/PRIORS EQUAL
+/STATISTICS= raw TABLE
+/CLASSIFY=NONMISSING POOLED .
+
+COMPUTE animales = 1 .
+EXECUTE .
+DO IF ((p721 >= 15 & p721 < 99) | (p722 >= 15 & p722 < 99) | (p723 >= 15 & p723 < 99)|
+(p731 >= 20 & p731 < 99) | (p732 >= 15 & p732 < 99) | (p733 >= 25 & p733 < 99) | (p734 >= 15 & p734 < 99) |
+(p735 >= 25 & p735 < 99) ) .
+
+RECODE
+    animales (1=0) .
+END IF .
+EXECUTE .
+
+COMPUTE enseres = 0 .
+EXECUTE .
+DO IF (lava = 1 & refri = 1 & vehi = 1 & licua = 1 & bao = 1 & agua = 1 & luz = 1 & tv = 1 & animales = 1) .
+RECODE
+    enseres (0=1) .
+END IF .
+EXECUTE .
+
+COMPUTE patron = 1 .
+EXECUTE .
+DO IF (p25=4) .
+RECODE
+    patron (1=0) .
+END IF .
+EXECUTE .
+
+compute indisp = 0 .
+execute.
+do if (luz + agua + piso =3) .
+recode
+    indisp (0=1).
+end if.
+execute.
+
+compute anitie = 0 .
+execute .
+do if (animtrab + animcons + tierra=3) .
+recode anitie (0=1).
+end if .
+execute .
+
+COMPUTE YYDEPEN=-26*DEPEN.
+COMPUTE YYNINOS=-13*NINOS.
+COMPUTE YYNOASI=-13*NOASI5.
+COMPUTE YYTRAB15=-32*TRAB15.
+
+IF ( HH1 = 1) YYHACINA=100.
+IF ( HH2 = 1) YYHACINA=40.
+IF ( HH3 = 1) YYHACINA=32.
+IF ( HH4 = 1) YYHACINA=30.
+IF ( HH5 = 1) YYHACINA=28.
+IF ( HH6 = 1 ) YYHACINA=25.
+
+IF ( ESCJ1 = 1) YYESC= 55.
+IF ( ESCJ2 = 1) YYESC= 58.
+
+--- Page 15/284 ---
+
+IF ( ESCJ3 = 1) YYESC= 63.
+IF ( ESCJ4 = 1) YYESC= 100.
+
+IF (OCUPJ0 = 1) YYOCUP= 40.
+IF (OCUPJ1 = 1) YYOCUP= 44.
+IF (OCUPJ2 = 1) YYOCUP= 90.
+IF (OCUPJ3_4 = 1) YYOCUP = 100.
+IF (OCUPJ5_9 = 1) YYOCUP = 34.
+
+IF (DISCAP = 0) YYDISCAP= 100.
+IF (DISCAP = 1) YYDISCAP= 80.
+
+IF (EJ1 =1) YYEJ= 50.
+IF (EJ2 =1) YYEJ= 58.
+IF (EJ3 =1) YYEJ= 72.
+IF (EJ4 =1) YYEJ= 87.
+IF (EJ5 =1) YYEJ= 100.
+IF (EJ6 =1) YYEJ= 86.
+
+IF (estgas =0) YYestgas = 100.
+IF (estgas =1) YYestgas = 74.
+
+IF (licua =0) YYlicua = 100.
+IF (licua =1) YYlicua = 66.
+
+IF (VEHI=0) YYVEHI= 100.
+IF (VEHI=1) YYVEHI= 0.
+
+IF (tv=0) YYtv= 100.
+IF (tv=1) YYtv= 77.
+
+IF (ANIMALES=0) YYANIM= 100.
+IF (ANIMALES=1) YYANIM= 0.
+
+IF (LAVA=0) YYLAVA= 100.
+IF (LAVA=1) YYLAVA= 0.
+
+IF (PATRON=0) YYPATRON= 100.
+IF (PATRON=1) YYPATRON= 0.
+
+IF (ENSERES=0) YYENSER= 0.
+IF (ENSERES=1) YYENSER= -100.
+
+if (indisp=0) yyindisp = 0 .
+if (indisp=1) yyindisp = -100 .
+
+if (anitie=0) yyanitie=0 .
+if (anitie=1) yyanitie=-100 .
+
+if (refri=0) yyrefri=100 .
+if (refri=1) yyrefri=0 .
+
+if (radio=0) yyradio=0 .
+if (radio=1) yyradio=-100 .
+
+FREQUENCIES
+    VARIABLES= yydepen yyninos yynoasi yytrab15 yyhacina yyesc yyocup yydiscap yyej yyestgas
+               yylicua yyvehi yytv yyanim yylava yypatron yyindisp yyenser yyanitie yyrefri yyradio
+    /FORMAT=NOTABLE
+    /STATISTICS=MEAN .
+
+COMPUTE input = 0 .
+EXECUTE .
+DO IF (MISSING(yydepen) | MISSING(yyninos) | MISSING(yynoasi) | MISSING(yytrab15) | MISSING(yyhacina)
+    | MISSING(yyesc) | MISSING(yyocup) | MISSING(yydiscap) | MISSING(yyej) | MISSING(yyestgas) | MISSING(yyrefri)
+    | MISSING(yyanitie) | MISSING(yyradio) | MISSING(yylicua) | MISSING(yyvehi) | MISSING(yytv) | MISSING(yyindisp)) .
+RECODE
+    input (0=1) .
+END IF .
+EXECUTE .
+
+RECODE yydepen (SYSMIS=-68.616) .
+
+--- Page 16/284 ---
+
+RECODE yyninos (SYSMIS=-31.452) .
+RECODE yynoasi (SYSMIS=-4.317) .
+RECODE yytrab15 (SYSMIS=-10.332) .
+RECODE yyhacina (SYSMIS=32.233) .
+RECODE yyesc (SYSMIS=60.967) .
+RECODE yyocup (SYSMIS=43.842) .
+RECODE yydiscap (SYSMIS=99.011) .
+RECODE yyej (SYSMIS=82.360) .
+RECODE yyestgas (SYSMIS=77.596) .
+RECODE yylicua (SYSMIS=74.229) .
+RECODE yyvehi (SYSMIS=3.021) .
+RECODE yytv (SYSMIS=83.173) .
+RECODE yyanim (SYSMIS=15.891) .
+RECODE yyindisp (sysmis=-17.783).
+RECODE yypatron (SYSMIS=-242) .
+RECODE yyenser (SYSMIS=-16.455) .
+RECODE yyanitie (sysmis=-25.229) .
+RECODE yyrefri (sysmis= 7.538) .
+RECODE yyradio (sysmis=).
+
+COMPUTE yycalif = yydepen + yyninos + yynoasi + yytrab15 + yyhacina +
+               yyesc + yyocup + yydiscap + yyej + yyestgas + yylicua + yytv .
+EXECUTE .
+
+DISCRIMINANT
+    /GROUPS=lpnva(0 1)
+    /VARIABLES=yycalif
+    /ANALYSIS ALL
+    /SAVE=CLASS
+    /PRIORS EQUAL
+    /STATISTICS=raw TABLE
+    /CLASSIFY=NONMISSING POOLED .
+
+USE ALL.
+COMPUTE filter_$=(dis_2 = 0).
+VARIABLE LABEL filter_$ 'dis_2 = 0 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+    VARIABLES=yycalif /FORMAT=NOTABLE
+    /STATISTICS=MINIMUM .
+
+USE ALL.
+COMPUTE filter_$=(dis_2 = 1).
+VARIABLE LABEL filter_$ 'dis_2 = 1 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+    VARIABLES=yycalif /FORMAT=NOTABLE
+    /STATISTICS= MAXIMUM .
+
+FILTER OFF.
+USE ALL.
+EXECUTE .
+
+COMPUTE yycalif = yycalif + yyvehi + yyindisp + yyanitie + yyrefri + yylava .
+EXECUTE .
+
+COMPUTE pobre = 0 .
+EXECUTE .
+DO IF (yycalif < 465.4) .
+RECODE
+    pobre (0=1) .
+END IF .
+EXECUTE .
+
+--- Page 17/284 ---
+
+MEANS
+TABLES=lpnva agua bao depen discap ej1 ej2 ej3 ej4 ej5 ej6 escj1 escj2 escj3
+escj4 estgas hh1 hh2 hh3 hh4 hh5 hh6 ingmen15 ingmes ingmesh ingmtgm
+ingmlgr inmh15pc lava licua luz ninos noasi15 ocupj0 ocupj1 ocupj2
+ocupj3_4 ocupj5_9 piso radio refri tierra totpers trab15 tv vehi p65_10 indisp BY
+pobre
+/CELLS MEAN STDDEV COUNT
+/FORMAT= LABELS .
+
+IF (DIS_1=0 & DIS_2=0 & POBRE=0) SECUENCE=1.
+IF (DIS_1=0 & DIS_2=0 & POBRE=1) SECUENCE=2.
+IF (DIS_1=0 & DIS_2=1 & POBRE=0) SECUENCE=3.
+IF (DIS_1=1 & DIS_2=0 & POBRE=0) SECUENCE=4.
+IF (DIS_1=0 & DIS_2=1 & POBRE=1) SECUENCE=5.
+IF (DIS_1=1 & DIS_2=0 & POBRE=1) SECUENCE=6.
+IF (DIS_1=1 & DIS_2=1 & POBRE=0) SECUENCE=7.
+IF (DIS_1=1 & DIS_2=1 & POBRE=1) SECUENCE=8.
+IF (SYSMIS(DIS_1) & DIS_2=0 & POBRE=0) SECUENCE=9.
+IF (SYSMIS(DIS_1) & DIS_2=0 & POBRE=1) SECUENCE=10.
+IF (SYSMIS(DIS_1) & DIS_2=1 & POBRE=0) SECUENCE=11.
+IF (SYSMIS(DIS_1) & DIS_2=1 & POBRE=1) SECUENCE=12.
+
+FREQUENCIES
+VARIABLES= agua bao discap ej1 ej2 ej3 ej4 ej5 ej6 escj1 escj2 escj3
+escj4 estgas hh1 hh2 hh3 hh4 hh5 hh6
+lava licua luz ninos noasi15 ocupj0 ocupj1 ocupj2
+ocupj3_4 ocupj5_9 piso radio refri tierra totpers trab15 tv vehi p65_10 indisp discap lpnva .
+
+FREQUENCIES
+VARIABLES=secuence pobre lpnva dis_1 dis_2.
+
+if (yypobre=1 & VEHI=0) yyPOBRE=9.
+recode yypobre (9=0).
+
+--- Page 18/284 ---
+
+REGIÓN 2. SIERRA
+FASE 2
+MODELO zz
+
+SORT CASES BY
+inmh15pc (A) .
+
+COMPUTE LNIN15PC = LN(INMH15PC+1).
+EXECUTE.
+
+IF (LNIN15PC >= 0 & LNIN15PC <= .425) VENT_ING = 1.
+IF (LNIN15PC > .414 & LNIN15PC <= .851) VENT_ING = 2.
+IF (LNIN15PC > .827 & LNIN15PC <= 1.276) VENT_ING = 3.
+IF (LNIN15PC > 1.241 & LNIN15PC <= 1.702) VENT_ING = 4.
+IF (LNIN15PC > 1.654 & LNIN15PC <= 2.127) VENT_ING = 5.
+IF (LNIN15PC > 2.068 & LNIN15PC <= 2.553) VENT_ING = 6.
+IF (LNIN15PC > 2.481 & LNIN15PC <= 2.9785) VENT_ING = 7.
+IF (LNIN15PC > 2.895 & LNIN15PC <= 3.404) VENT_ING = 8.
+IF (LNIN15PC > 3.308 & LNIN15PC <= 3.829) VENT_ING = 9.
+IF (LNIN15PC > 3.722 & LNIN15PC <= 4.255) VENT_ING = 10.
+IF (LNIN15PC > 4.135 & LNIN15PC <= 4.68) VENT_ING = 11.
+IF (LNIN15PC > 4.549 & LNIN15PC <= 5.106) VENT_ING = 12.
+IF (LNIN15PC > 4.962 & LNIN15PC <= 5.531) VENT_ING = 13.
+IF (LNIN15PC > 5.376 & LNIN15PC <= 5.957) VENT_ING = 14.
+IF (LNIN15PC > 5.789 & LNIN15PC <= 6.382) VENT_ING = 15.
+IF (LNIN15PC > 6.203 & LNIN15PC <= 6.808) VENT_ING = 16.
+IF (LNIN15PC > 6.616 & LNIN15PC <= 7.233) VENT_ING = 17.
+IF (LNIN15PC > 7.030 & LNIN15PC <= 7.659) VENT_ING = 18.
+IF (LNIN15PC > 7.443 & LNIN15PC <= 8.084) VENT_ING = 19.
+IF (LNIN15PC > 8.51) VENT_ING = 20.
+EXECUTE.
+
+IF (PISO1 = 1) PISO_1 = -0.69 .
+IF (PISO1 = 2) PISO_1 = 1.47 .
+IF (PISO1 = 3) PISO_1 = 0.76 .
+
+IF (PARED1 = 1) PARED_1 = 2.53 .
+IF (PARED1 = 2) PARED_1 = -1.68 .
+IF (PARED1 = 3) PARED_1 = 1.32 .
+IF (PARED1 = 4) PARED_1 = -1.12 .
+IF (PARED1 = 5) PARED_1 = 0.47 .
+IF (PARED1 = 6) PARED_1 = 0.06 .
+IF (PARED1 = 7) PARED_1 = -1.98 .
+IF (PARED1 = 8) PARED_1 = 0.29 .
+IF (PARED1 = 9) PARED_1 = -2.37 .
+IF (PARED1 = 10) PARED_1 = 2.56 .
+IF (PARED1 = 11) PARED_1 = 0.07 .
+IF (PARED1 = 12) PARED_1 = -2.77 .
+IF (PARED1 = 13) PARED_1 = -2.48 .
+IF (PARED1 = 14) PARED_1 = 1.57 .
+
+IF (AGUABA1 = 1) AGUABA_1 = 0.68 .
+IF (AGUABA1 = 2) AGUABA_1 = -3.21 .
+IF (AGUABA1 = 3) AGUABA_1 = 0.85 .
+IF (AGUABA1 = 4) AGUABA_1 = -0.47 .
+IF (AGUABA1 = 5) AGUABA_1 = -2.09 .
+IF (AGUABA1 = 6) AGUABA_1 = .85 .
+IF (AGUABA1 = 7) AGUABA_1 = -2.24.
+IF (AGUABA1 = 8) AGUABA_1 = 4.08 .
+
+IF (OCUPJ = 0) OCUPJ_1 = -0.42 .
+IF (OCUPJ = 1) OCUPJ_1 = 1.47.
+IF (OCUPJ = 2) OCUPJ_1 = 1.92 .
+IF (OCUPJ = 3) OCUPJ_1 = .067 .
+IF (OCUPJ = 4) OCUPJ_1 = 1.3 .
+IF (OCUPJ = 5) OCUPJ_1 = -1.33 .
+IF (OCUPJ = 6) OCUPJ_1 = 0.71 .
+IF (OCUPJ = 7) OCUPJ_1 = 1.91 .
+IF (OCUPJ = 8) OCUPJ_1 = 0.004 .
+IF (OCUPJ = 9) OCUPJ_1 = -2.03 .
+

@@ -1,0 +1,220 @@
+--- Page 202/284 ---
+
+*******************************************
+*********puntajes región 32**************
+*******************************************
+
+***Modelo AA
+
+SCRIMINANT
+GROUPS=LP98(0 1)
+/VARIABLES= depen ninos  trab151 ocupj_1 esc discap
+ piso_1 aguaba_1 pared_1  hectie1 radio estgas vhs vehi lava
+cal_agua tocadisc ventila
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS = .42 .58
+/STATISTICS=raw TABLE CROSSVALID
+/CLASSIFY=NONMISSING POOLED .
+
+***Calificación
+
+COMPUTE AADEPEN=.52*DEPEN .
+COMPUTE AANINOS=.18*NINOS .
+COMPUTE AATRAB15 = .75 * TRAB151 .
+COMPUTE AAOCUPJ = 8 * OCUPJ_1 .
+COMPUTE AAESC = 3 * ESC .
+COMPUTE AAPISO = 2 * PISO1.
+COMPUTE AAAGUABA = 3*AGUABA_1 .
+COMPUTE AAPARED = .13 * PARED1.
+COMPUTE AAHECTI = 1 * HECTIE1 .
+
+IF (DISCAP = 0) AADISCAP = 100 .
+IF (DISCAP = 1) AADISCAP = 78 .
+
+IF (RADIO = 0) AARADIO = 100 .
+IF (RADIO = 1) AARADIO = 93 .
+
+IF (ESTGAS = 0) AAESTGAS = 100.
+IF (ESTGAS = 1) AAESTGAS = 81 .
+
+IF (VHS = 0) AAVHS = 100 .
+IF (VHS = 0) AAVHS = 80 .
+
+IF (VEHI=0) AAVEHI= 100 .
+IF (VEHI=1) AAVEHI= 78 .
+
+IF (LAVA = 0) AALAVA = 100 .
+IF (LAVA = 1) AALAVA = 83 .
+
+IF (CAL_AGUA = 0) AACAL_AG = 100 .
+IF (CAL_AGUA = 1) AACAL_AG = 90 .
+
+IF (TOCADISC = 0) AATOCADI = 100 .
+IF (TOCADISC = 1) AATOCADI = 83 .
+
+IF (VENTILA = 0) AAVENTI = 100 .
+IF (VENTILA = 1) AAVENTI = 85 .
+
+EXECUTE .
+
+***calcular las medias de las variables para imputar a valores perdidos
+
+FREQUENCIES
+  VARIABLES= aadepen aaninos aatrab15 aaocupj aaesc aapiso aaaguaba aapared aahecti aadiscap
+             aaradio aaestgas aavhs aavehi aalava aacal_ag aatocadi aaventi
+  /FORMAT=NOTABLE
+  /STATISTICS=MEAN .
+
+COMPUTE ainput = 0 .
+EXECUTE .
+DO IF (MISSING(aadepen) | MISSING(aaninos) | MISSING(aatrab15) | MISSING(aaocupj) | MISSING(aaesc)
+| MISSING(aapiso) | MISSING(aaaguaba) | MISSING(aapared) | MISSING(aahecti) | MISSING(aadiscap) | MISSING(aaradio)
+| MISSING(aaestgas) | MISSING(aavhs) | MISSING(aavehi) | MISSING (aalava) | MISSING(aacal_ag) | MISSING (aatocadi)
+| MISSING(aaventi) ) .
+CODE
+  ainput (0=1) .
+END IF .
+EXECUTE .
+
+***se recodifican los valores perdidos con las medias de las variables
+
+--- Page 203/284 ---
+
+| MISSING(aaestgas) | MISSING(aavhs) | MISSING(aavehi) | MISSING (aalava) | MISSING(aacal_ag) | MISSING (aatocadi)
+| MISSING(aaventi) ) .
+RECODE
+  ainput (0=1)
+END IF .
+EXECUTE .
+
+***se recodifican los valores perdidos con las medias de las variables
+
+RECODE aadepen (SYSMIS=-112.63) .
+RECODE aaninos (SYSMIS=-21.36) .
+RECODE aatrab15 (SYSMIS = -2.37) .
+RECODE aaocupj (SYSMIS = 3.74) .
+RECODE aaesc (SYSMIS= 10.59) .
+RECODE aapiso (SYSMIS = 3.10) .
+RECODE aaaguaba (SYSMIS= 1.26) .
+RECODE aapared (SYSMIS=-109.57) .
+RECODE aahecti (SYSMIS = 22.53) .
+RECODE aadiscap (SYSMIS = 98.92) .
+RECODE aaradio (SYSMIS=97.97) .
+RECODE aaestgas (SYSMIS = 95.73) .
+RECODE aavhs (SYSMIS = 80.00) .
+RECODE aavehi (SYSMIS=81.15) .
+RECODE aalava (SYSMIS=86.29) .
+RECODE aacal_ag (SYSMIS = 90.26) .
+RECODE aatocadi (SYSMIS=83.74) .
+RECODE aaventi (SYSMIS = 94.95) .
+
+***se hace la calificación
+
+COMPUTE aacalif = aadepen + aaninos + aatrab15 + aaocupj + aaesc + aapiso + aaaguaba + aapared + aahecti
+                + aadiscap + aaradio + aaestgas + aavhs + aavehi + aalava + aacal_ag + aatocadi + aaventi .
+EXECUTE .
+
+***filtros
+
+COMPUTE VIEJITOS = 0 .
+IF ((ej < 25 & TOTPER < 5) | (ej > 65 & ej < 98 & TOTPER < 3)) VIEJITOS = -100 .
+
+COMPUTE AACALIF1 = AACALIF + VIEJITOS .
+
+EXECUTE.
+
+*** línea de corte
+
+COMPUTE aapobre = 0 .
+DO IF (aacalif1 < 609.01) .
+RECODE
+  aapobre (0=1) .
+END IF .
+EXECUTE .
+
+FREQUENCIES
+  VARIABLES = lp98 AAPOBRE .
+
+--- Page 204/284 ---
+
+*******************************************
+*********puntajes región 32**************
+*******************************************
+
+***Modelo AA
+
+SCRIMINANT
+GROUPS=LP98(0 1)
+/VARIABLES= depen ninos  trab151 ocupj_1 esc discap
+ piso_1 aguaba_1 pared_1  hectie1 radio estgas vhs vehi lava
+cal_agua tocadisc ventila
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS = .42 .58
+/STATISTICS=raw TABLE CROSSVALID
+/CLASSIFY=NONMISSING POOLED .
+
+***Calificación
+
+IF (PERCEP = 0) DEPEN = 99 .
+RECODE DEPEN (99 = SYSMIS) .
+
+COMPUTE AADEPEN=.52*DEPEN .
+COMPUTE AANINOS=.18*NINOS .
+COMPUTE AATRAB15 = .75 * TRAB151 .
+COMPUTE AAOCUPJ = 8 * OCUPJ_1 .
+COMPUTE AAESC = 3 * ESC .
+COMPUTE AAPISO = 2 * PISO1.
+COMPUTE AAAGUABA = 3*AGUABA_1 .
+COMPUTE AAPARED = .13 * PARED1.
+COMPUTE AAHECTI = 1 * HECTIE1 .
+
+IF (DISCAP = 0) AADISCAP = 100 .
+IF (DISCAP = 1) AADISCAP = 78 .
+
+IF (RADIO = 0) AARADIO = 100 .
+IF (RADIO = 1) AARADIO = 93 .
+
+IF (ESTGAS = 0) AAESTGAS = 100.
+IF (ESTGAS = 1) AAESTGAS = 81 .
+
+IF (VHS = 0) AAVHS = 100 .
+IF (VHS = 0) AAVHS = 80 .
+
+IF (VEHI=0) AAVEHI= 100 .
+IF (VEHI=1) AAVEHI= 78 .
+
+IF (LAVA = 0) AALAVA = 100 .
+IF (LAVA = 1) AALAVA = 83 .
+
+IF (CAL_AGUA = 0) AACAL_AG = 100 .
+IF (CAL_AGUA = 1) AACAL_AG = 90 .
+
+IF (TOCADISC = 0) AATOCADI = 100 .
+IF (TOCADISC = 1) AATOCADI = 83 .
+
+IF (VENTILA = 0) AAVENTI = 100 .
+IF (VENTILA = 1) AAVENTI = 85 .
+
+EXECUTE .
+
+***calcular las medias de las variables para imputar a valores perdidos
+
+FREQUENCIES
+  VARIABLES= aadepen aaninos aatrab15 aaocupj aaesc aapiso aaaguaba aapared aahecti aadiscap
+             aaradio aaestgas aavhs aavehi aalava aacal_ag aatocadi aaventi
+  /FORMAT=NOTABLE
+  /STATISTICS=MEAN .
+
+COMPUTE ainput = 0 .
+EXECUTE .
+DO IF (MISSING(aadepen) | MISSING(aaninos) | MISSING(aatrab15) | MISSING(aaocupj) | MISSING(aaesc)
+| MISSING(aapiso) | MISSING(aaaguaba) | MISSING(aapared) | MISSING(aahecti) | MISSING(aadiscap) | MISSING(aaradio)
+| MISSING(aaestgas) | MISSING(aavhs) | MISSING(aavehi) | MISSING (aalava) | MISSING(aacal_ag) | MISSING (aatocadi)
+| MISSING(aaventi) ) .
+RECODE
+  ainput (0=1) .
+END IF .
+EXECUTE .
+

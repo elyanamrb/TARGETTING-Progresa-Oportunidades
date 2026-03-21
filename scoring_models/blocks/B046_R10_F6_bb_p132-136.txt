@@ -1,0 +1,311 @@
+--- Page 132/284 ---
+
+Región 10. Costa
+Fase 6
+Modelo bb
+
+ISCRIMINANT
+/GROUPS=lp98(0 1)
+/VARIABLES=DEPEN   trab151  EJ esc bao_1 piso_1
+                discap licua  ventila radio refri    vehi vhs
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS = .42 .58
+/STATISTICS=MEAN STDDEV UNIVF BOXM RAW CORR GCOV TABLE CROSSVALID
+/CLASSIFY=NONMISSING POOLED .
+
+***************************************************************
+************PUNTAJE ******************************************
+***************************************************************
+
+
+COMPUTE AADEPEN=-53*DEPEN.
+COMPUTE AATRAB15=-100*TRAB151 .
+COMPUTE AAEDAD=1*EJ .
+COMPUTE AAESC=6*ESC .
+COMPUTE AABAO=10*BAO_1 .
+COMPUTE AAPISO=14*PISO_1 .
+
+IF (DISCAP =0) AADISCAP = 100.
+IF (DISCAP =1) AADISCAP =73 .
+
+IF (LICUA=0) AALICUA=100 .
+IF (LICUA=1) AALICUA=80 .
+
+IF (VENTILA=0) AAVENT=100 .
+; (VENTILA=1) AAVENT=71 .
+
+IF (RADIO=0) AARADIO=100 .
+IF (RADIO=1) AARADIO=89 .
+
+IF (REFRI=0) AAREFRI=100 .
+IF (REFRI=1) AAREFRI=85 .
+
+IF (VEHI=0) AAVEHI=100 .
+IF (VEHI=1) AAVEHI=77 .
+
+IF (VHS=0) AAVHS=100 .
+IF (VHS=1) AAVHS=77 .
+
+FREQUENCIES
+VARIABLES= AADEPEN AATRAB15 AAEDAD AAESC AABAO AAPISO
+           AADISCAP AALICUA AAVENT AARADIO AAREFRI    AAVEHI AAVHS
+/FORMAT=NOTABLE
+/STATISTICS=MEAN .
+
+COMPUTE aainput = 0 .
+DO IF ( MISSING(AADEPEN) | MISSING(AATRAB15) | MISSING(AAEDAD) | MISSING(AAESC)
+| MISSING(AABAO) | MISSING(AAPISO) |
+missing(AADISCAP) | missing(AALICUA) | missing(AAVENT) | missing(AARADIO) | missing(AAREFRI) |
+missing(AAVEHI) | missing(AAVHS) ) .
+RECODE aainput (0=1) .
+END IF .
+EXECUTE .
+
+RECODE AADEPEN (SYSMIS=-186.65) .
+RECODE AATRAB15 (SYSMIS=0) .
+RECODE AAEDAD (SYSMIS=40.37).
+RECODE AAESC (SYSMIS=18.03) .
+RECODE AABAO (SYSMIS=-2.06) .
+RECODE AAPISO (SYSMIS=-1.84).                     132/284
+
+--- Page 133/284 ---
+
+RECODE AADISCAP (SYSMIS=98.38).
+RECODE AALICUA (SYSMIS=86.78) .
+RECODE AAVENT (SYSMIS=71.80) .
+RECODE AARADIO (SYSMIS=92.31).
+RECODE AAREFRI (SYSMIS=87.05) .
+RECODE AAVEHI (SYSMIS=77.75) .
+RECODE AAVHS (SYSMIS=77.00) .
+
+COMPUTE AAcalif = AADEPEN + AATRAB15 + AAEDAD + AAESC + AABAO + AAPISO +
+    AADISCAP + AALICUA + AAVENT + AARADIO + AAREFRI + AAVEHI + AAVHS .
+EXECUTE .
+
+***Calificación
+
+***Filtro
+
+IF ((TOTPER<=4 &EJ<=24) | (TOTPER<=2 &EJ>=65)) viejitos=-100 .
+RECODE viejitos (SYSMIS=0) .
+
+COMPUTE AACALIF1=AACALIF + viejitos .
+
+EXECUTE .
+
+***línea de corte
+
+COMPUTE AApobre = 0 .
+DO IF (AAcalif1< 589.37) .
+RECODE AApobre (0=1) .
+END IF .
+
+IF (VEHI = 0) AAPOBRE = 0 .
+EXECUTE.
+
+FREQUENCIES
+  VARIABLES=LP98 AAPOBRE .
+
+COMPUTE FECHA = 981216 .
+
+COMPUTE FOPO = 18 .
+
+EXECUTE.
+SAVE OUTFILE='E:\fase8\punteo\REG_10\reg10j20.sav'
+  /COMPRESSED.
+
+AGGREGATE
+  /OUTFILE='E:\fase8\punteo\REG_10\AGGR.SAV'
+  /BREAK=entidad mpio local folio
+  /aapobr_1 = MEAN(aapobre).
+
+GET
+  FILE='E:\fase8\punteo\REG_10\Aggr.sav'.
+EXECUTE .
+
+RENAME VARIABLES
+    aapobr_1 = aapobre .
+
+FILTER OFF.
+USE ALL.
+SELECT IF(aapobre = 1).
+EXECUTE .
+
+SAVE TRANSLATE OUTFILE='E:\fase8\punteo\REG_10\fopo10_18.dbf'
+  /TYPE=DB4 /MAP /REPLA.
+
+***LOCS
+
+***crear archivo de control
+
+133/284
+
+--- Page 134/284 ---
+
+GET
+  FILE='E:\fase8\PUNTEO\REG_10\reg10j_18.sav'.
+EXECUTE .
+
+IF (aapobre = 1) FOLPOB = 1.
+IF (aapobre = 1) PERPOB = TOTPER .
+RECODE FOLPOB PERPOB (SYSMIS = 0) .
+
+COMPUTE X = 1 .
+
+EXECUTE.
+
+SAVE OUTFILE='E:\fase8\punteo\REG_10\reg10j_18.sav'
+  /COMPRESSED.
+
+AGGREGATE
+  /OUTFILE='E:\fase8\punteo\reg_10\locs10_18.sav'
+  /BREAK=entidad mpio local
+  /hogloca1 = SUM(x) /totper_1 = SUM(totper) /hogpobre = SUM(folpob) /perpob_1 =
+  SUM(perpob) /region = FIRST(region) /fecha = FIRST(fecha) / fopo = FIRST(fopo) .
+
+GET
+  FILE='E:\fase8\punteo\reg_10\locs10_18.sav'.
+EXECUTE .
+
+SAVE TRANSLATE OUTFILE='E:\fase8\PUNTEO\LOCALS\981216\locs10_18.dbf'
+  /TYPE=DB4
+  /COMPRESSED.
+
+
+*********************************
+**** RECUPERACION DE POBRES 15-ago-98 ***************
+*************************************************
+
+*** Se recuperan con el filtro de indispensabe
+
+IF (piso1=1 & aguaba1=1& luz=1) indisp = -100 .
+RECODE indisp (sysmis=0) .
+
+COMPUTE bbCALIF=aaCALIF + indisp .
+EXECUTE .
+
+COMPUTE bbpobre = 0 .
+EXECUTE .
+DO IF (bbcalif< 589.37) .
+RECODE
+    bbpobre (0=1) .
+END IF .
+
+DO IF (vehi = 0 & bbpobre = 1) .
+RECODE
+    bbpobre (1=0) .
+END IF .                                134/284
+
+--- Page 135/284 ---
+
+EXECUTE .
+
+IF ( aapobre=0 & bbpobre=1) fapobre = 1 .
+RECODE fapobre (sysmis=0) .
+EXECUTE .
+
+
+***********************************
+********* Se incrementa la línea de corte *******
+
+COMPUTE ccpobre = 0 .
+EXECUTE .
+DO IF (bbcalif< 648.6) .
+RECODE
+    ccpobre (0=1) .
+END IF .
+
+DO IF (vehi = 0 & ccpobre = 1) .
+RECODE
+    ccpobre (1=0) .
+END IF .
+EXECUTE .
+
+IF (aapobre=0 & fapobre=0 & ccpobre=1) fbpobre = 1 .
+RECODE fbpobre (sysmis=0) .
+EXECUTE .
+
+COMPUTE ffpobre = fapobre + fbpobre.
+RECODE ffpobre (sysmis=0).
+
+COMPUTE pobre = aapobre + fapobre + fbpobre .
+recode pobre (sysmis=0) .
+
+FREQUENCIES
+  VARIABLES= pobre .
+
+
+135/284
+
+--- Page 136/284 ---
+
+Región 10. Costa
+Fase 8
+
+DISCRIMINANT
+  /GROUPS=lp98(0 1)
+  /VARIABLES=DEPEN  trab151  EJ esc_bao_1 piso_1
+         discap  licua  ventila  radio  refri    vehi vhs
+  /ANALYSIS ALL
+  /SAVE=CLASS
+  /PRIORS = .42 .58
+  /STATISTICS=MEAN STDDEV UNIVF BOXM RAW CORR GCOV TABLE CROSSVALID
+  /CLASSIFY=NONMISSING POOLED .
+
+
+************************************************************
+***********PUNTAJE *************************************
+************************************************************
+
+***Calificación
+
+IF (PERCEP = 0) DEPEN = 99 .
+RECODE DEPEN (99 = SYSMIS) .
+
+COMPUTE AADEPEN=-.53*DEPEN.
+COMPUTE AATRAB15=-100*TRAB151 .
+COMPUTE AAEDAD=1*EJ .
+COMPUTE AAESC=6*ESC .
+COMPUTE AABAO=10*BAO_1 .
+COMPUTE AAPISO=14*PISO_1 .
+
+IF (DISCAP =0) AADISCAP = 100.
+IF (DISCAP =1) AADISCAP =73 .
+
+IF (LICUA=0) AALICUA=100 .
+IF (LICUA=1) AALICUA=80 .
+
+IF (VENTILA=0) AAVENT=100 .
+IF (VENTILA=1) AAVENT=71 .
+
+IF (RADIO=0) AARADIO=100 .
+IF (RADIO=1) AARADIO=89 .
+
+IF (REFRI=0) AAREFRI=100 .
+IF (REFRI=1) AAREFRI=85 .
+
+IF (VEHI=0) AAVEHI=100 .
+IF (VEHI=1) AAVEHI=77 .
+
+IF (VHS=0) AAVHS=100 .
+IF (VHS=1) AAVHS=77 .
+
+FREQUENCIES
+  VARIABLES= AADEPEN AATRAB15 AAEDAD AAESC AABAO AAPISO
+         AADISCAP AALICUA AAVENT AARADIO AAREFRI    AAVEHI AAVHS
+  /FORMAT=NOTABLE
+  /STATISTICS=MEAN .
+
+COMPUTE aainput = 0 .
+DO IF ( MISSING(AADEPEN) | MISSING(AATRAB15) | MISSING(AAEDAD) | MISSING(AAESC)
+  | MISSING(AABAO) | MISSING(AAPISO) |
+    missing(AADISCAP) | missing(AALICUA) | missing(AAVENT) | missing(AARADIO) | missing(AAREFRI) |
+    missing(AAVEHI) | missing(AAVHS) ) .
+RECODE aainput (0=1) .
+END IF .
+EXECUTE .
+
+RECODE AADEPEN (SYSMIS=-129.53) .
+RECODE AATRAB15 (SYSMIS=-3.29) .                  136/284
+

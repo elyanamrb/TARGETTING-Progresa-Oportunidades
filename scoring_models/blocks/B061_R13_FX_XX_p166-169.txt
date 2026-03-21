@@ -1,0 +1,189 @@
+--- Page 166/284 ---
+
+Región 13. Mixteca - Costa - Chatina
+Fase 8
+
+***discriminante con modelo nuevo
+
+DISCRIMINANT
+/GROUPS=lp98(0 1)
+/VARIABLES= depen ninos ocupj_1 esc piso_1 ej aguaba_1 trab151 noasi1 pared_1
+refri vehi estgas tv
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS .42 .58
+/STATISTICS=RAW TABLE
+/CLASSIFY=NONMISSING POOLED .
+
+***puntajes región 13
+
+IF (PERCEP = 0) DEPEN = 99 .
+RECODE DEPEN (99 = SYSMIS) .
+
+COMPUTE AADEPEN = -31*DEPEN .
+COMPUTE AANINOS = -17*NINOS .
+COMPUTE AAOCUPJ = -35*OCUPJ_1 .
+COMPUTE AAESC = 4*ESC .
+COMPUTE AAPISO = 11*PISO_1 .
+COMPUTE AAEDAD = 1*EJ .
+COMPUTE AAAGUABA = 13*AGUABA_1 .
+COMPUTE AATRAB = -31*TRAB151 .
+COMPUTE AANOASI = -26*NOASI1 .
+COMPUTE AAPARED = 11* PARED_1 .
+
+IF (REFRI = 0) AAREFRI = 100 .
+IF (REFRI = 1) AAREFRI = 76 .
+
+IF (VEHI = 0) AAVEHI = 100 .
+IF (VEHI = 1) AAVEHI = 55 .
+
+IF (ESTGAS = 0) AAESTGAS = 100 .
+IF (ESTGAS = 1) AAESTGAS = 76
+
+IF (TV = 0) AATV = 100 .
+IF (TV = 1) AATV = 76 .
+
+EXECUTE.
+
+***calcular las medias de las variables para imputar a valores perdidos
+
+FREQUENCIES
+VARIABLES= aadepen aaninos aaocupj aaesc aapiso aaedad aaaguaba aatrab aanoasi aapared
+aarefri aavehi aaestgas aatv
+/FORMAT=NOTABLE
+/STATISTICS=MEAN .
+
+COMPUTE sainput = 0 .
+EXECUTE .
+DO IF (MISSING(aadepen) | MISSING(aaninos) | MISSING (aaocupj)| MISSING (aaesc)| MISSING (aapiso)
+| MISSING(aaedad) | MISSING(aaaguaba) | MISSING (aatrab) | MISSING(aanoasi) | MISSING (aapared)
+| MISSING(aarefri) | MISSING (aavehi)| MISSING(aaestgas) |MISSING(aatv)) .
+RECODE
+sainput (0=1) .
+END IF .
+EXECUTE .
+
+**se recodifican los valores perdidos con las medias de las variables
+
+RECODE aadepen (SYSMIS = -86.3830) .
+RECODE aaninos (SYSMIS = -32.2052) .
+RECODE aaocupj (SYSMIS = -0.1957) .
+RECODE aaesc (SYSMIS = 11.3084) .
+
+--- Page 167/284 ---
+
+RECODE aapiso (SYSMIS = -0.1677) .
+RECODE aaedad (SYSMIS = 46.5358) .
+RECODE aaaguaba (SYSMIS = 0.2089) .
+RECODE aatrab (SYSMIS = -3.1996) .
+RECODE aanoasi (SYSMIS = -3.9132)
+ECODE aapared (SYSMIS = 0.02622) .
+xECODE aarefri (SYSMIS = 78.0951) .
+RECODE aavehi (SYSMIS = 56.5298) .
+RECODE aaestgas (SYSMIS = 78.7379) .
+RECODE aatv (SYSMIS = 80.7853) .
+
+***se hace la calificación
+
+COMPUTE aacalif = aadepen + aaninos + aaocupj + aaesc + aapiso + aaedad +
+aaaguaba + aatrab + aanoasi + aapared + aarefri + aavehi + aaestgas + aatv .
+EXECUTE .
+
+***discriminante con la línea de pobreza
+
+DISCRIMINANT
+/GROUPS=LP98(0 1)
+/VARIABLES=aacalif
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS .42 .58
+/STATISTICS=raw TABLE crossvalid
+/CLASSIFY=NONMISSING POOLED .
+
+USE ALL.
+COMPUTE filter_$=(dis_1 = 0).
+VARIABLE LABEL filter_$ 'dis_1 = 0 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+XECUTE .
+
+FREQUENCIES
+VARIABLES=aacalif
+/FORMAT=NOTABLE
+/STATISTICS=MINIMUM .
+
+USE ALL.
+COMPUTE filter_$=(dis_1 = 1).
+VARIABLE LABEL filter_$ 'dis_1 = 1 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$
+EXECUTE .
+
+FREQUENCIES
+VARIABLES=aacalif
+/FORMAT=NOTABLE
+/STATISTICS= MAXIMUM .
+
+FILTER OFF.
+USE ALL.
+EXECUTE .
+
+***se determina la línea de corte y se obtienen los pobres
+
+IF ((EJ<= 24 & totper <= 4) | (EJ >= 65 & totper <= 2)) viejitos = -100.
+recode viejitos (SYSMIS = 0) .
+EXECUTE .
+
+COMPUTE aacalif1 = aacalif + viejitos .
+EXECUTE .
+
+COMPUTE aapobre= 0 .
+
+--- Page 168/284 ---
+
+EXECUTE .
+DO IF (aacalif1< 347.385) .
+RECODE
+aapobre (0=1) .
+END IF .
+XECUTE .
+
+****** Recodificación por vehículo
+
+DO IF (vehi = 0 & aapobre = 1) .
+RECODE
+aapobre (1=0) .
+END IF .
+EXECUTE .
+
+*******Filtro de seguridad social y última pregunta del cuestionario
+
+IF (SEG_SOC > 0 & SEG_SOC < 6) SEGURO = 1 .
+IF (FAM_ENTR >= 1 & FAM_ENTR <= 7) FAM_BIEN = 1 .
+
+IF ((SEGURO = 1 | FAM_BIEN = 1) & AAPOBRE = 1) ELIMIN = 1 .
+
+RECODE SEGURO FAM_BIEN ELIMIN (SYSMIS = 0) .
+
+IF (ELIMIN = 1) AAPOBRE = 0 .
+
+EXECUTE .
+
+FREQUENCIES
+VARIABLES=lp98 aapobre .
+
+--- Page 169/284 ---
+
+Región 13 Fase 8
+
+En esta región se calificaron 563 folios en la región 41, debido a que la clave del
+municipio estaba. El error se descubrió cuando se llegó a las localidades a
+incorporar a las familias.
+
+Dado que ya se había impreso la papelería y el proceso de incorporación estaba ya
+muy avanzado, se optó por llevar los resultados de la calificación de estos folios a la
+región 13, y para indicar que habían sido calificados con el modelo de la región 41
+se creó la variable reg_cal que tiene el valor de la región en que fueron calificados.
+

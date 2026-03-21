@@ -1,0 +1,216 @@
+--- Page 187/284 ---
+
+REGIÓN 28. ALTIPLANO
+FASE 3
+MODELO aa
+
+DISCRIMINANT
+/GROUPS=lp98(0 1)
+/VARIABLES= depen ninos vhs ocupj_1 vehi lava piso_1 mu15a49 aguaba_1 trab151 estgas hectie1 discap
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS .42 .58
+/STATISTICS=RAW TABLE
+/CLASSIFY=NONMISSING POOLED .
+
+COMPUTE AADEPEN = -30*DEPEN .
+COMPUTE AANINOS = -31*NINOS .
+COMPUTE AAOCUPJ = -24*OCUPJ_1 .
+COMPUTE AAPISO = 11*PISO_1 .
+COMPUTE AAMU15A = -13*MU15A49 .
+COMPUTE AAAGUABA = 12*AGUABA_1 .
+COMPUTE AATRAB = -48*TRAB151 .
+COMPUTE AAHECTE = 2*HECTIE1 .
+
+IF (VHS = 0) AAVHS = 100 .
+IF (VHS = 1) AAVHS = 58 .
+
+IF (VEHI = 0) AAVEHI = 100 .
+IF (VEHI = 1) AAVEHI = 82 .
+
+IF (LAVA = 0) AALAVA = 100 .
+IF (LAVA = 1) AALAVA = 64 .
+
+IF (ESTGAS = 0) AAESTGAS= 100 .
+IF (ESTGAS = 1) AAESTGAS = 78
+
+(DISCAP = 0) AADISCAP = 100 .
+IF (DISCAP = 1) AADISCAP = 70
+
+EXECUTE.
+
+FREQUENCIES
+VARIABLES= aadepen aaninos aaocupj aapiso aamu15a aaaguaba aatrab aahectie
+aavhs aavehi aalava aaestgas aadiscap
+/FORMAT=NOTABLE
+/STATISTICS=MEAN .
+
+COMPUTE ainput = 0 .
+EXECUTE .
+DO IF (MISSING(aadepen) | MISSING(aaninos) | MISSING(aaocupj)| MISSING(aapiso) | MISSING(aamu15a)
+| MISSING (aaaguaba) | MISSING(aatrab) | MISSING (aahectie)| MISSING(aavhs) | MISSING(aavehi)
+| MISSING(aalava) | MISSING(aaestgas) | MISSING(aadiscap)) .
+RECODE
+ainput (0=1) .
+END IF .
+EXECUTE .
+
+RECODE aadepen (SYSMIS = -70.9908) .
+RECODE aaninos (SYSMIS = -50.0667) .
+RECODE aaocupj (SYSMIS = 2.9610) .
+RECODE aapiso (SYSMIS = -3.2240) .
+RECODE aamu15a (SYSMIS = -15.1862) .
+RECODE aaaguaba (SYSMIS = -1.1773) .
+RECODE aatrab (SYSMIS = -1.8725) .
+RECODE aahectie (SYSMIS = 11.2473) .
+RECODE aavhs (SYSMIS = 63.1277) .
+JODE aavehi (SYSMIS = 86.8590) .
+JODE aalava (SYSMIS = 72.3638) .
+RECODE aaestgas (SYSMIS = 91.7228) .
+RECODE aadiscap (SYSMIS = 98.0387) .
+
+COMPUTE zzcalif = aadepen + aaninos + aaocupj + aapiso + aamu15a + aaaguaba + aatrab + aahectie + aavhs
+                                                     187/284
+
+--- Page 188/284 ---
+
++ aavehi + aalava + aaestgas + aadiscap .
+EXECUTE .
+
+DISCRIMINANT
+/GROUPS=LP98(0 1)
+/VARIABLES=aacalif
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS .42 .58
+/STATISTICS=raw TABLE crossvalid
+/CLASSIFY=NONMISSING POOLED .
+
+USE ALL.
+COMPUTE filter_$=(dis_2 = 0).
+VARIABLE LABEL filter_$ 'dis_2 = 0 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+VARIABLES=aacalif
+/FORMAT=NOTABLE
+/STATISTICS=MINIMUM .
+
+USE ALL.
+COMPUTE filter_$=(dis_2 = 1).
+VARIABLE LABEL filter_$ 'dis_2 = 1 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+VARIABLES=aacalif
+/FORMAT=NOTABLE
+/STATISTICS= MAXIMUM .
+
+FILTER OFF.
+USE ALL.
+EXECUTE .
+
+COMPUTE VIEJITOS = 0 .
+IF ((ej < 25 & TOTPER < 5) | (ej > 65 & ej < 98 & TOTPER < 3)) VIEJITOS = -100 .
+IF (BAQ1 = 1 & AGUA1 = 1 & PISO1 = 1) INDISPEN = - 100 .
+RECODE INDISPEN (SYSMIS = 0) .
+
+COMPUTE zzCALIF1 = zzCALIF + VIEJITO .
+EXECUTE.
+
+COMPUTE zzpobre = 0 .
+DO IF (zzcalif1 < 330.615) .
+RECODE
+zzpobre (0=1) .
+END IF .
+EXECUTE .
+
+DO IF (vehi = 0 & zzpobre = 1) .
+RECODE
+zzpobre (1=0) .
+END IF .
+EXECUTE .
+
+FREQUENCIES
+VARIABLES=lp98 aapobre .
+
+--- Page 189/284 ---
+
+REGIÓN 28. ALTIPLANO
+FASE 3
+MODELO bb
+
+
+DISCRIMINANT
+/GROUPS=lp98(0 1)
+/VARIABLES= hacina depen ninos ocupj_1 piso_1 mu15a49 trab151 hectie1 agua_1
+      vhs refri vehi lava radio estgas discap
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS .42 .58
+/STATISTICS=RAW TABLE
+/CLASSIFY=NONMISSING POOLED .
+
+COMPUTE bbHACINA = -5*HACINA .
+COMPUTE bbDEPEN = -32*DEPEN .
+COMPUTE bbNINOS = -28*NINOS .
+COMPUTE bbOCUPJ = -24*OCUPJ_1 .
+COMPUTE bbPISO = 11*PISO_1 .
+COMPUTE bbMU15A = -11*MU15A49 .
+COMPUTE bbTRAB = -33*TRAB151 .
+COMPUTE bbHECTIE = 3*HECTIE1 .
+COMPUTE bbAGUA = 6*AGUA_1 .
+
+IF (VHS = 0) bbVHS = 100 .
+IF (VHS = 1) bbVHS = 62 .
+
+IF (REFRI = 0) bbREFRI = 100 .
+IF (REFRI = 1) bbREFRI = 88 .
+
+IF (VEHI = 0) bbVEHI = 100 .
+IF (VEHI = 1) bbVEHI = 81 .
+
+IF (LAVA = 0) bbLAVA = 100 .
+IF (LAVA = 1) bbLAVA = 75 .
+
+IF (RADIO = 0) bbRADIO = 100 .
+IF (RADIO = 1) bbRADIO = 88 .
+
+IF (ESTGAS = 0) bbESTGAS= 100 .
+IF (ESTGAS = 1) bbESTGAS = 87
+
+IF (DISCAP = 0) bbDISCAP = 100 .
+IF (DISCAP = 1) bbDISCAP = 72
+
+EXECUTE.
+
+FREQUENCIES
+VARIABLES= bbhacina bbdepen bbninos bbocupj bbpiso bbmu15a bbtrab bbhectie bbagua
+      bbvhs bbrefri bbvehi bblava bbradio bbestgas bbdiscap
+/FORMAT=NOTABLE
+/STATISTICS=MEAN .
+
+COMPUTE bbinput = 0 .
+EXECUTE .
+DO IF (MISSING(bbhacina) | MISSING(bbdepen) | MISSING(bbninos) | MISSING(bbocupj) | MISSING(bbpiso)
+| MISSING(bbmu15a) | MISSING(bbtrab) | MISSING (bbhectie) | MISSING (bbagua)
+| MISSING(bbvhs) | MISSING(bbrefri) | MISSING(bbvehi) | MISSING(bblava)
+| MISSING(bbradio) | MISSING(bbestgas) | MISSING(bbdiscap)) .
+RECODE
+bbinput (0=1) .
+END IF .
+EXECUTE .
+
+RECODE bbhacina (SYSMIS = -13.7644) .
+RECODE bbdepen (SYSMIS = -72.6155) .
+RECODE bbninos (SYSMIS = -45.2907) .
+RECODE bbocupj (SYSMIS = -0.0740) .
+RECODE bbpiso (SYSMIS = 0.03365) .
+RECODE bbmu15a (SYSMIS = -12.6689) .                189/284
+

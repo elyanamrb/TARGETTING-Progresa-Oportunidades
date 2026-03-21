@@ -1,0 +1,17 @@
+Región 13. Mixteca - Costa - Chatina
+Fase 6
+Modelo bb
+
+**discriminante con modelo nuevo
+
+DISCRIMINANT
+/GROUPS=lp98(0 1)
+/VARIABLES= depen ninos ocupj_1 esc piso_1 ej aguaba_1 trab151 noasi1 pared_1
+refri vehi estgas tv
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS .41 .59
+/STATISTICS=RAW TABLE
+/CLASSIFY=NONMISSING POOLED .
+
+***puntajes 

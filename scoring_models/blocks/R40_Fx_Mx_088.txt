@@ -1,0 +1,134 @@
+región 40
+
+***Modelo
+
+DISCRIMINANT
+/GROUPS=LP98(0 1)
+/VARIABLES= depen ninos noasi1 esc
+agua_1 estgas vhs refri vehi lava discap
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS = .42 .58
+/STATISTICS=raw TABLE CROSSVALID
+/CLASSIFY=NONMISSING POOLED .
+
+***Calificación
+
+COMPUTE AADEPEN=-25*DEPEN .
+COMPUTE AANINOS=-26*NINOS .
+COMPUTE AANOASI=-33*NOASI1 .
+COMPUTE AAESC=8*ESC .
+COMPUTE AAAGUA=12*AGUA_1 .
+
+IF (DISCAP=0) AADISCAP = 100 .
+IF (DISCAP=1) AADISCAP = 86 .
+
+IF (ESTGAS=0) AAESTGAS = 100 .
+IF (ESTGAS=1) AAESTGAS = 63 .
+
+IF (VHS=0) AAVHS= 100 .
+IF (VHS=1) AAVHS= 56 .
+
+IF (REFRI=0) AAREFRI= 100 .
+IF (REFRI=1) AAREFRI= 79 .
+
+IF (VEHI=0) AAVEHI= 100 .
+IF (VEHI=1) AAVEHI= 66 .
+
+IF (LAVA = 0) AALAVA = 100 .
+IF (LAVA = 1) AALAVA = 67 .
+
+EXECUTE .
+
+***calcular las medias de las variables para imputar a valores perdidos
+
+FREQUENCIES
+VARIABLES= aadepen aaninos aanoasi aaesc
+aaagua aadiscap aaestgas aavhs aarefri aavehi aalava
+/FORMAT=NOTABLE
+/STATISTICS=MEAN .
+
+COMPUTE aainput = 0 .
+EXECUTE .
+DO IF (MISSING(aadepen) | MISSING(aaninos) | MISSING(aanoasi) | MISSING(aaesc)
+| MISSING(aaagua) | MISSING(aadiscap) | MISSING(aaestgas) | MISSING(aavhs) | MISSING(aarefri) | MISSING (aavehi) |
+MISSING (aalava)) .
+RECODE
+aainput (0=1) .
+END IF .
+EXECUTE .
+
+***se recodifican los valores perdidos con las medias de las variables
+
+RECODE aadepen (SYSMIS=-65.51) .
+RECODE aaninos (SYSMIS=-38.62) .
+
+--- Page 250/284 ---
+
+RECODE aanoasi (SYSMIS=-2.91) .
+RECODE aaesc (SYSMIS=35.20) .
+RECODE aaagua (SYSMIS=-2.81) .
+RECODE aadiscap (SYSMIS=99.26) .
+RECODE aaestgas (SYSMIS=79.71) .
+RECODE aavhs (SYSMIS=57.30) .
+RECODE aarefri (SYSMIS=86.01) .
+RECODE aavehi (SYSMIS=67.35) .
+RECODE aalava (SYSMIS=71.36) .
+
+EXECUTE .
+
+***se hace la calificación
+
+COMPUTE aacalif = aadepen + aaninos + aanoasi + aaesc + aaagua + aadiscap
++ aaestgas + aavhs + aarefri + aavehi + aalava .
+
+EXECUTE .
+
+***filtros
+
+COMPUTE VIEJITOS = 0 .
+IF ((ej < 25 & TOTPER < 5) | (ej > 65 & ej < 98 & TOTPER < 3)) VIEJITOS = -100 .
+
+COMPUTE AACALIF = AACALIF + VIEJITOS .
+
+EXECUTE.
+
+COMPUTE aapobre = 0 .
+DO IF (aacalif < 412.10) .
+RECODE
+aapobre (0=1) .
+END IF .
+EXECUTE .
+
+DO IF (AApobre = 1 & vehi = 0) .
+RECODE
+AApobre (1=0) .
+END IF .
+EXECUTE .
+
+FREQUENCIES
+VARIABLES=LP98 AAPOBRE .
+
+COMPUTE fecha=161298.
+EXECUTE.
+
+SAVE OUTFILE='H:\4_5y6fas\punteo\REG_40\reg40j_18.sav'
+/COMPRESSED.
+
+********************archivo de entrega: fopo#_1.dbf*********************
+
+FILTER OFF.
+USE ALL.
+SELECT IF(aapobre = 1).
+EXECUTE .
+
+SAVE TRANSLATE OUTFILE='H:\4_5y6fas\punteo\REG_40\fopo40_18.dbf'
+/keep = entidad mpio local folio aapobre
+/TYPE=DB4 /MAP /REPLA.
+
+SAVE TRANSLATE OUTFILE='H:\4_5y6fas\punteo\entregas\981216\fopo40_18.dbf'
+/keep = entidad mpio local folio aapobre
+/TYPE=DB4 /MAP /REPLA.
+
+--- Page 251/284 ---
+

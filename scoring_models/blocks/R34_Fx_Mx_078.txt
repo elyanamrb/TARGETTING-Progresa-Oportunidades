@@ -1,0 +1,141 @@
+REGION 34                      *****
+
+********************************************************************************
+************************************con el archivo de hogares************************************
+********************************************************************************
+
+***se llama el archivo regj_# dbf en la región que se va a trabajar y guardar con extensión .sav
+
+GET FILE='E:\Fase8\punteo\calificar\990920\jefes.sav' .
+EXECUTE
+
+FILTER OFF.
+USE ALL.
+SELECT IF(region = 34).
+EXECUTE
+
+SAVE OUTFILE='E:\Fase8\punteo\REG_34\REG34J_25.sav'
+ /COMPRESSED.
+
+*****Se cambian las variables: edad,dias_tra,num_hec,caballos,burros,bueyes,chivos,reses,gallinas,cerdos,conejos,totpers
+
+COMPUTE EJ = edad .
+COMPUTE NUM_DIAS = dias_tra .
+COMPUTE ANIM1 = caballos .
+COMPUTE ANIM2 = burros .
+COMPUTE ANIM3 = bueyes .
+COMPUTE ANIM4 = chivos .
+COMPUTE ANIM5 = reses .
+COMPUTE ANIM6 = gallinas .
+COMPUTE ANIM7 = cerdos .
+COMPUTE ANIM8 = conejos .
+COMPUTE TOTPER = totpers .
+
+****Recodificación del nombre de algunas variables
+
+RENAME VARIABLES
+ent_fed = entidad / munici = mpio / locali = local / res_entr = result
+/ habla_di = lengua / hab_dia_ = leng_mas / habla_es = leng_esp
+/ yer_con_ = verifrab / pos_ocu = ocupj / seg_soc_ = seg_mas
+/ per_ocu = per_ocup / edad_pri = ej_1ertf / v30 = tiem_mas / lug_trab = tiem_lug
+/ mes_trab = tiem_mes / din_env = tiem_din / din_env_ = tiem_mdl / piso_viv = piso
+/ tech_viv = techo / muro_viv = muro / exc_viv = bao / exc_agua = bao_agua / luz_ele = luz
+/ licuador = licua / est_gas = estgas / televis = tv / videocas = vhs / tierr_ag = tierra
+/ cu_tt_ag = predios / luz_ele = luz / lavadora = lava .
+
+***Recodificación de variables
+
+RECODE num_hog result tot_per sexo lengua leng_mas leng_esp
+leer_esc ido_esc ult_niv asi_esc con_tra verifrab con_inac
+ocupj seg_soc mot_no_t ej_1ertf trab_tem tiem_mas tiem_lug
+edo_civ conyuge nin_sol tortilla tit_tort leche tit_lech es_ciega
+es_muda es_sorda es_menta es_falta es_ayuda emigro sit_viv piso
+techo muro tot_cuar agua_ter agua_viv bao bao_agua tierra
+totper (0=SYSMIS) .
+
+DO IF (tierra = 2 | tierra = 9) .
+RECODE
+num_hec hect_rie hect_tem (0=SYSMIS) .
+END IF .
+EXECUTE .
+
+RECODE sexo lengua (2=0) (9=sysmis) .
+
+RECODE licua refri estgas cal_agua radio tocadisc tv vhs lava ventila animales luz (1=0) (9=sysmis).
+
+220/284
+
+--- Page 221/284 ---
+
+RECODE licua refri estgas cal_agua radio tocadisc tv vhs lava ventila animales luz (2=1) .
+
+EXECUTE.
+
+***Creación de algunas variables
+
+COMPUTE HECTIE1 = NUM_HEC .
+
+IF (CON_TRA <= 3 | VERITRAB <= 5) TRAB = 1
+IF (CON_TRA = 4 | VERITRAB = 6) TRAB = 0
+
+IF (AUTO_PRO = 1 | CAMION_P = 1) VEHI = 0
+IF (AUTO_PRO = 2 & CAMION_P = 2) VEHI = 1 .
+
+IF (NIN5A15 > 0) NOASI1 = NOASI15 / NIN5A15.
+
+IF (NIN8A15 > 0) TRAB151 = TRAB15 / NIN8A15.
+
+IF (ULT_NIV = 2) ESC = ULT_GRA
+IF (ULT_NIV = 3) ESC = 6 + ULT_GRA .
+IF (ULT_NIV = 4) ESC = 9 + ULT_GRA .
+IF (ULT_NIV = 5) ESC = 9 + ULT_GRA .
+IF (ULT_NIV = 6) ESC = 12 + ULT_GRA .
+IF (ULT_NIV = 7) ESC = 16 + ULT_GRA .
+
+RECODE noasi1 trab151 esc (SYSMIS = 0) .
+EXECUTE.
+
+COMPUTE DISCAP = 0
+IF (ES_CIEGA = 1 | ES_MUDA = 1 | ES_SORDA = 1 | ES_MENTA = 1 | ES_FALTA = 1 | ES_AYUDA = 1) DISCAP = 1 .
+
+RECODE EJ (99=SYSMIS) .
+RECODE EJ (99=SYSMIS) .
+
+RECODE ANIM1 ANIM2 ANIM3 ANIM4 ANIM5 ANIM6 ANIM7 ANIM8 (99=0) .
+RECODE ANIM1 ANIM2 ANIM3 ANIM4 ANIM5 ANIM6 ANIM7 ANIM8 (SYSMIS=0) .
+
+COMPUTE TOT_ANIM = ANIM1 * 150 + ANIM2 * 100 + ANIM3 * 225 + ANIM4 * 150 + ANIM5 * 400
+     + ANIM6 + ANIM7 * 150 + ANIM8 * 2.5 .
+
+IF (AGUA_TER = 2 & BAO = 2) AGUABA1 = 1.
+IF (AGUA_TER = 1 & AGUA_VIV = 2 & BAO = 2) AGUABA1 = 2.
+IF (AGUA_VIV = 1 & BAO = 2) AGUABA1 = 3
+IF (AGUA_TER = 2 & BAO = 1 & BAO_AGUA = 2) AGUABA1 = 4.
+IF(AGUA_TER = 1 & BAO = 1 & BAO_AGUA = 2) AGUABA1 = 5.
+IF (AGUA_VIV = 1 & BAO = 1 & BAO_AGUA = 2) AGUABA1 =6.
+IF (AGUA_TER =1 & AGUA_VIV = 2 & BAO_AGUA = 1) AGUABA1 = 7.
+IF (AGUA_VIV = 1 & BAO_AGUA = 1) AGUABA1 = 8.
+
+COMPUTE PISO1 = PISO .
+RECODE PISO1 (9=SYSMIS) .
+
+COMPUTE PARED1 = MURO .
+RECODE PARED1 (99=SYSMIS) .
+
+IF (CON_TRA = 4 | VERITRAB = 6) OCUPJ = 0 .
+COMPUTE OCUPJ1 = OCUPJ .
+RECODE OCUPJ1 (99=SYSMIS) .
+
+IF (AGUA_TER = 2) AGUA1 = 1.
+IF (AGUA_TER = 1 & AGUA_VIV = 2) AGUA1 = 2.
+IF (AGUA_VIV = 1) AGUA1 = 3.
+
+IF (BAO = 2) BAO1 = 1.
+IF (BAO = 1 & BAO_AGUA = 2) BAO1 = 2.
+IF (BAO_AGUA = 1) BAO1 = 3.
+
+EXECUTE.
+
+--- Page 222/284 ---
+
+*** PUNTAJES DE LA 

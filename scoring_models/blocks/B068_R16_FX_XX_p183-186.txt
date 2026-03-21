@@ -1,0 +1,193 @@
+--- Page 183/284 ---
+
+Región 16. Pochutla
+Fase 8
+
+***discriminante con modelo nuevo
+
+DISCRIMINANT
+/GROUPS=lp98(0 1)
+/VARIABLES= lengua esc discap trab151 noasi1 vehi hacina
+depen ninos luz licua refri tv
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS .42 .58
+/STATISTICS=RAW TABLE
+/CLASSIFY=NONMISSING POOLED .
+
+***puntajes región 16
+
+***Calificación
+
+IF (PERCEP = 0) DEPEN = 99 .
+RECODE DEPEN (99 = SYSMIS) .
+
+COMPUTE AAESC = 7.86*ESC .
+COMPUTE AATRAB = -33.075*TRAB151 .
+COMPUTE AANOASI = -13.867*NOASI1 .
+COMPUTE AAHACINA = -5.021*HACINA .
+COMPUTE AADEPEN = -18.058*DEPEN .
+COMPUTE AANINOS = -15.86*NINOS .
+
+IF (LENGUA = 0) AALENGUA = 100 .
+IF (LENGUA = 1) AALENGUA = 96 .
+
+IF (DISCAP = 0) AADISCAP = 100 .
+IF (DISCAP = 1) AADISCAP = 66 .
+
+IF (VEHI = 0) AAVEHI = 100 .
+IF (VEHI = 1) AAVEHI = 39 .
+
+IF (LUZ = 0) AALUZ = 100 .
+IF (LUZ = 1) AALUZ = 75 .
+
+IF (LICUA = 0) AALICUA = 100 .
+IF (LICUA = 1) AALICUA = 47 .
+
+IF (REFRI = 0) AAREFRI = 100 .
+IF (REFRI = 1) AAREFRI = 59 .
+
+IF (TV = 0) AATV = 100 .
+IF (TV = 1) AATV = 100 .
+
+EXECUTE.
+
+***calcular las medias de las variables para imputar a valores perdidos
+
+FREQUENCIES
+VARIABLES= aaesc aatrab aanoasi aahacina aadepen aaninos aalengua aadiscap aavehi
+aaluz aalicua aarefri aatv
+/FORMAT=NOTABLE
+/STATISTICS=MEAN .
+
+COMPUTE aainput = 0 .
+EXECUTE .
+DO IF (MISSING(aaesc) | MISSING(aatrab) | MISSING (aanoasi)| MISSING (aahacina)| MISSING (aadepen)
+| MISSING(aaninos) | MISSING(aalengua) | MISSING (aadiscap) | MISSING(aavehi) | MISSING (aaluz)
+MISSING(aalicua) | MISSING (aarefri)| MISSING(aatv)) .
+RECODE
+aainput (0=1) .
+END IF .
+EXECUTE .
+                                                    183/284
+
+--- Page 184/284 ---
+
+***se recodifican los valores perdidos con las medias de las variables
+
+RECODE aaesc (SYSMIS = 29.3643) .
+RECODE aatrab (SYSMIS = -1.478) .
+RECODE aanoasi (SYSMIS = -2.108) .
+RECODE aahacina (SYSMIS = -21.2908) .
+RECODE aadepen (SYSMIS = -51.127) .
+RECODE aaninos (SYSMIS = -28.4765) .
+RECODE aalengua (SYSMIS = 96.6119) .
+RECODE aadiscap (SYSMIS = 98.467) .
+RECODE aavehi (SYSMIS = 41.0628) .
+RECODE aaluz (SYSMIS =93.7399 ) .
+RECODE aalicua (SYSMIS = 59.7399) .
+RECODE aarefri (SYSMIS = 62.2351) .
+RECODE aatv (SYSMIS = 100) .
+
+***se hace la calificación
+
+COMPUTE aacalif = aaesc + aatrab + aanoasi + aahacina + aadepen + aaninos +
+aalengua + aadiscap + aavehi + aaluz + aalicua + aarefri + aatv .
+EXECUTE .
+
+***discriminante con la linea de pobreza
+
+DISCRIMINANT
+/GROUPS=LP98(0 1)
+/VARIABLES=aacalif
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS .42 .58
+/STATISTICS=raw TABLE crossvalid
+/CLASSIFY=NONMISSING POOLED .
+
+USE ALL.
+COMPUTE filter_$=(dis_2 = 0).
+VARIABLE LABEL filter_$ 'dis_1 = 0 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+VARIABLES=aacalif
+/FORMAT=NOTABLE
+/STATISTICS=MINIMUM .
+
+USE ALL.
+COMPUTE filter_$=(dis_2 = 1).
+VARIABLE LABEL filter_$ 'dis_1 = 1 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+VARIABLES=aacalif
+/FORMAT=NOTABLE
+/STATISTICS= MAXIMUM .
+
+FILTER OFF.
+USE ALL.
+EXECUTE .
+
+**se determina la linea de corte y se obtienen los pobres
+
+IF ((EJ<= 24 & totper <= 4) | (EJ >= 65 & totper <= 2)) viejitos = -100.
+recode viejitos (SYSMIS = 0) .
+EXECUTE .
+                                                    184/284
+
+--- Page 185/284 ---
+
+COMPUTE aacalif1 = aacalif + viejitos .
+EXECUTE .
+
+COMPUTE aapobre= 0 .
+XECUTE .
+DO IF (aacalif1< 522.72) .
+RECODE
+aapobre (0=1) .
+END IF .
+EXECUTE .
+
+****** Recodificación por vehículo
+
+DO IF (vehi = 0 & aapobre = 1) .
+RECODE
+aapobre (1=0) .
+END IF .
+EXECUTE .
+
+*******Filtro de seguridad social y última pregunta del cuestionario
+
+IF (SEG_SOC > 0 & SEG_SOC < 6) SEGURO = 1 .
+IF (FAM_ENTR >= 1 & FAM_ENTR <= 7) FAM_BIEN = 1 .
+
+IF ((SEGURO = 1 | FAM_BIEN = 1) & AAPOBRE = 1) ELIMIN = 1 .
+
+RECODE SEGURO FAM_BIEN ELIMIN (SYSMIS = 0) .
+
+IF (ELIMIN = 1) AAPOBRE = 0 .
+
+EXECUTE .
+
+.REQUENCIES
+VARIABLES=lp98 aapobre ELIMIN .
+
+--- Page 186/284 ---
+
+REGIÓN 28. ALTIPLANO
+FASE 2
+Modelo yy
+Modelo aa
+
+
+Los modelos son incorrectos. Las bases presentan valores perdidos en las
+variables.
+

@@ -1,0 +1,338 @@
+--- Page 110/284 ---
+
+Región 9. Campeche Rural
+Fase 2
+Modelo yy
+
+DISCRIMINANT
+ /GROUPS=lpnva(0 1)
+ /VARIABLES= depen ninos noasi15 trab15 hh2 hh3 hh4 hh5 hh6
+escj1 escj2 escj3 ocupj1 ocupj2 ocupj3_4 ocupj5_9 ej2 ej3 ej4 ej5 ej6
+p65_10 tierra discap estgas  radio
+ /ANALYSIS ALL
+ /SAVE=CLASS
+ /PRIORS EQUAL
+ /STATISTICS=RAW TABLE
+ /CLASSIFY=NONMISSING POOLED .
+
+COMPUTE animales = 1 .
+EXECUTE .
+DO IF ((p721 >= 15 & p721 < 99) | (p722 >= 15 & p722 < 99) | (p723 >= 15 & p723 < 99)|
+(p731 >= 20 & p731 < 99) | (p732 >= 15 & p732 < 99) | (p733 >= 25 & p733 < 99) | (p734 >= 15 & p734 < 99) |
+(p735 >= 25 & p735 < 99) ) .
+RECODE
+ animales (1=0) .
+END IF .
+EXECUTE .
+
+COMPUTE enseres = 0 .
+EXECUTE .
+DO IF (lava = 1 & refri = 1 & vehi = 1 & licua = 1
+     & bao = 1 & agua = 1 & luz = 1
+     & tv = 1 & animales = 1) .
+RECODE
+ enseres (0=1) .
+END IF .
+EXECUTE .
+
+.OMPUTE patron = 1 .
+EXECUTE .
+DO IF (p25=4) .
+RECODE
+  patron (1=0) .
+END IF .
+EXECUTE .
+
+COMPUTE YYDEPEN=-24*DEPEN.
+
+COMPUTE YYNINOS=-15*NINOS.
+
+COMPUTE YYNOASI=-6*NOASI15.
+
+COMPUTE YYTRAB15=-24*TRAB15.
+
+IF ( HH1 = 1) YYHACINA=100.
+IF ( HH2 = 1) YYHACINA=44.
+IF ( HH3 = 1) YYHACINA=36.
+IF ( HH4 = 1) YYHACINA=34.
+IF ( HH5 = 1) YYHACINA=31.
+IF ( HH6 = 1 ) YYHACINA=29.
+
+
+IF ( ESCJ1 = 1) YYESC= 75.
+IF ( ESCJ2 = 1) YYESC= 80.
+IF ( ESCJ3 = 1) YYESC= 85.
+IF ( ESCJ4 = 1) YYESC= 100.
+
+IF (OCUPJ0 = 1) YYOCUP= 65.
+IF (OCUPJ1 = 1) YYOCUP= 79.
+IF (OCUPJ2 = 1) YYOCUP= 82.
+IF (OCUPJ3_4 = 1) YYOCUP = 100.
+IF (OCUPJ5_9 = 1) YYOCUP = 74.
+
+--- Page 111/284 ---
+
+IF (DISCAP = 0) YYDISCAP= 100.
+IF (DISCAP = 1) YYDISCAP= 85.
+
+IF (estgas = 0) YYestgas= 100.
+F (estgas = 1) YYestgas= 74.
+
+IF (EJ1 =1) YYEJ= 70.
+IF (EJ2 =1) YYEJ= 80.
+IF (EJ3 =1) YYEJ= 85.
+IF (EJ4 =1) YYEJ= 90.
+IF (EJ5 =1) YYEJ= 100.
+IF (EJ6 =1) YYEJ= 91.
+
+IF (RADIO =0) YYRADIO = 100.
+IF (RADIO =1) YYRADIO = 85.
+
+IF (p65_10 =0) YYventi = 100.
+IF (p65_10 =1) YYventi = 80.
+
+IF (tierra=0) YYtierra= 100.
+IF (tierra=1) YYtierra= 39.
+
+
+IF (VEHI=0) YYVEHI= 100.
+IF (VEHI=1) YYVEHI= 0.
+
+IF (REFRI=0) YYREFRI= 100.
+IF (REFRI=1) YYREFRI= 0.
+
+IF (ANIMALES=0) YYANIM= 100.
+IF (ANIMALES=1) YYANIM= 0.
+
+
+IF (LAVA=0) YYLAVA= 100.
+IF (LAVA=1) YYLAVA= 0.
+
+IF (PATRON=0) YYPATRON= 100.
+IF (PATRON=1) YYPATRON= 0.
+
+IF (ENSERES=0) YYENSER= 0.
+IF (ENSERES=1) YYENSER= -100.
+
+
+FREQUENCIES
+VARIABLES= yydepen yyninos yynoasi yytrab15 yyhacina yyesc yyocup yydiscap
+ yyej yyradio yyestgas yytierra yyventi yyvehi yyrefri yyanim yylava yypatron yyenser
+/FORMAT=NOTABLE
+/STATISTICS=MEAN .
+
+
+COMPUTE input = 0 .
+EXECUTE .
+DO IF (MISSING(yydepen) | MISSING(yyninos) | MISSING(yynoasi) | MISSING(yytrab15)
+| MISSING(yyhacina) | MISSING(yyesc) | MISSING(yyocup)
+| MISSING(yydiscap) | MISSING(yyej) | MISSING(yyradio) |
+MISSING(yyestgas) | MISSING(yytierra) | MISSING(yyventi) | MISSING(yyvehi)
+| MISSING(yyrefri)| MISSING(yyanim)| MISSING(yylava)|
+MISSING(yypatron)| MISSING(yyenser) ) .
+RCODE
+ input (0=1) .
+END IF .
+ EXECUTE .
+
+--- Page 112/284 ---
+
+RECODE yydepen (SYSMIS=-48.815) .
+RECODE yyninos (SYSMIS=-29.830) .
+RECODE yynoasi (SYSMIS=-1.237) .
+ECODE yytrab15 (SYSMIS=-4.659) .
+.ECODE yyhacina (SYSMIS=39.418) .
+RECODE yyesc (SYSMIS=82.760) .
+RECODE yyocup (SYSMIS=91.175) .
+RECODE yydiscap (SYSMIS=99.468) .
+RECODE yyej (SYSMIS=87.667) .
+RECODE yyradio (SYSMIS=90.886) .
+RECODE yyestgas (SYSMIS=76.801) .
+RECODE yytierra (SYSMIS=39.364) .
+RECODE yyventi (SYSMIS=83.474) .
+RECODE yyvehi (SYSMIS=5.010) .
+RECODE yyrefri (SYSMIS=11.313) .
+RECODE yyanim (SYSMIS=14.524) .
+
+RECODE yylava (SYSMIS=5.309) .
+RECODE yypatron (SYSMIS=.149) .
+RECODE yyenser (SYSMIS=-12.556) .
+
+COMPUTE yycalif = yydepen + yyninos + yynoasi + yytrab15 + yyhacina +
+ yyesc + yyocup + yydiscap + yyej + yyradio + yyestgas + yytierra
+ + yyventi .
+EXECUTE .
+
+DISCRIMINANT
+ /GROUPS=lpnva(0 1)
+ /VARIABLES=yycalif
+ /ANALYSIS ALL
+ /SAVE=CLASS
+ /PRIORS EQUAL
+ /STATISTICS=TABLE
+ /CLASSIFY=NONMISSING POOLED .
+
+USE ALL.
+COMPUTE filter_$=(dis_2 = 0).
+VARIABLE LABEL filter_$ 'dis_2 = 0 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+VARIABLES=yycalif /FORMAT=NOTABLE
+/STATISTICS=MINIMUM .
+
+USE ALL.
+COMPUTE filter_$=(dis_2 = 1).
+VARIABLE LABEL filter_$ 'dis_2 = 1 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+VARIABLES=yycalif /FORMAT=NOTABLE
+ /STATISTICS= MAXIMUM .
+
+FILTER OFF.
+USE ALL.
+EXECUTE .
+
+OMPUTE pobrea = 0 .
+EXECUTE.
+do IF (yycalif < 631.5) .
+RECODE
+  pobrea (0=1).
+end if.
+
+--- Page 113/284 ---
+
+execute.
+
+compute indisp = 0 .
+execute.
+do if (luz + agua + piso =3) .
++code
+   indisp (0=1).
+end if.
+execute.
+
+if (indisp=0) yyindisp = 0 .
+if (indisp=1) yyindisp = -50 .
+
+COMPUTE yycalif = yycalif + yyvehi + yyindisp.
+EXECUTE .
+
+COMPUTE pobre = 0 .
+EXECUTE .
+DO IF (yycalif < 631.5) .
+RECODE
+  pobre (0=1) .
+END IF .
+EXECUTE .
+
+if (pobre=1 & VEHI=0) POBRE=9.
+recode (9=sysmis).
+
+MEANS
+  TABLES=lpnva agua bao depen discap ej1 ej2 ej3 ej4 ej5 ej6 escj1 escj2 escj3
+  escj4 estgas hh1 hh2 hh3 hh4 hh5 hh6 ingmen15 ingmes ingmesh ingmigm
+  ingmigr inmh15pc lava llcua luz mu15a49 ninos noasi15 ocupj0 ocupj1 ocupj2
+  ocupj3_4 ocupj5_9 piso radio refri tierra totpers trab15 tv vehi vhs p65_10 indisp BY
+  pobre
+  /CELLS MEAN STDDEV COUNT
+  /FORMAT= LABELS .
+
+IF (DIS_1=0 & DIS_2=0 & POBRE=0) SECUENCE=1.
+IF (DIS_1=0 & DIS_2=0 & POBRE=1) SECUENCE=2.
+IF (DIS_1=0 & DIS_2=1 & POBRE=0) SECUENCE=3.
+IF (DIS_1=1 & DIS_2=0 & POBRE=0) SECUENCE=4.
+IF (DIS_1=0 & DIS_2=1 & POBRE=1) SECUENCE=5.
+IF (DIS_1=1 & DIS_2=0 & POBRE=1) SECUENCE=6.
+IF (DIS_1=1 & DIS_2=1 & POBRE=0) SECUENCE=7.
+IF (DIS_1=1 & DIS_2=1 & POBRE=1) SECUENCE=8.
+IF (SYSMIS(DIS_1) & DIS_2=0 & POBRE=0) SECUENCE=9.
+IF (SYSMIS(DIS_1) & DIS_2=0 & POBRE=1) SECUENCE=10.
+IF (SYSMIS(DIS_1) & DIS_2=1 & POBRE=0) SECUENCE=11.
+IF (SYSMIS(DIS_1) & DIS_2=1 & POBRE=1) SECUENCE=12.
+
+FREQUENCIES
+  VARIABLES=secuence pobre pobrea lpnva.
+if (pobre=1 & VEHI=0) POBRE=9.
+recode (9=sysmis)
+
+--- Page 114/284 ---
+
+Región 9. Campeche Rural
+Fase 2
+Modelo aa
+
+***puntajes región 9
+
+COMPUTE AADEPEN=-28*DEPEN .
+COMPUTE AANINOS=-24*NINOS .
+COMPUTE AANOASI1=-32*NOASI1 .
+COMPUTE AATRAB15 = -52*TRAB151 .
+COMPUTE AAHACINA = -10*HACINA .
+COMPUTE AAESC = 6*ESC .
+COMPUTE AAEJ = 2*P08 .
+COMPUTE AAPISO = 7*PISO_1 .
+COMPUTE AAAGUAB = 4*AGUABA_1 .
+
+IF (DISCAP = 0) AADISCAP = 100 .
+IF (DISCAP = 1) AADISCAP = 91 .
+
+IF (ESTGAS = 0) AAESTGAS = 100 .
+IF (ESTGAS = 1) AAESTGAS = 62 .
+
+IF (P65_10 = 0) AAVENTIL = 100 .
+IF (P65_10 = 1) AAVENTIL =89 .
+
+IF (LENGUA = 0) AALENGUA = 100 .
+IF (LENGUA = 1) AALENGUA = 93 .
+
+IF (VEHI = 0) AAVEHI = 100 .
+IF (VEHI = 1) AAVEHI = 68 .
+
+EXECUTE.
+
+***calcular las medias de las variables para imputar a valores perdidos
+
+FREQUENCIES
+  VARIABLES= aadepen aaninos aanoasi1 aatrab15 aahacina aaesc
+  aaej aapiso aaaguab aadiscap aaestgas aaventil aalengua aavehi
+  /FORMAT=NOTABLE
+  /STATISTICS=MEAN .
+
+COMPUTE ainput = 0 .
+EXECUTE .
+DO IF (MISSING(aadepen) | MISSING(aaninos) | MISSING(aanoasi1) | MISSING (aatrab15)
+  | MISSING(aahacina) | MISSING(aaesc) | MISSING (aaej)
+  | MISSING(aapiso) |MISSING(aaaguab) | MISSING(aadiscap) |
+  MISSING(aaestgas) |MISSING(aaventil) |MISSING(aalengua) | MISSING(aavehi)) .
+RECODE
+  ainput (0=1) .
+END IF .
+EXECUTE .
+
+***se recodifican los valores perdidos con las medias de las variables
+
+RECODE aadepen (SYSMIS=-59.3905) .
+RECODE aaninos (SYSMIS=-48.5351) .
+RECODE aanoasi1 (SYSMIS=-2.8228) .
+RECODE aatrab15 (SYSMIS=-4.3438) .
+RECODE aahacina (SYSMIS=-43.6509) .
+RECODE aaesc (SYSMIS=23.9647) .
+RECODE aaej (SYSMIS=83.1209) .
+RECODE aapiso (SYSMIS=-3.4698) .
+RECODE aaaguab (SYSMIS=-.2928) .
+RECODE aadiscap (SYSMIS=99.6726) .
+RECODE aaestgas (SYSMIS=66.2926) .
+ECODE aaventil (SYSMIS=90.8028) .
+RECODE aalengua (SYSMIS=99.9769) .
+RECODE aavehi (SYSMIS=69.4494) .
+
+***se hace la calificación
+

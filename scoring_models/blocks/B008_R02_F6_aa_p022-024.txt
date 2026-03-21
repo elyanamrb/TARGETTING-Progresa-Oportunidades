@@ -1,0 +1,210 @@
+--- Page 22/284 ---
+
+REGIÓN 2. SIERRA
+FASE 6
+MODELO aa
+
+DISCRIMINANT
+/GROUPS=lp98(0 1)
+/VARIABLES=depen ninos noasi1 trab151 hacina esc ocupj_1 discap
+estgas ej tv licua hectie1
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS=.42 .58
+/STATISTICS=RAW TABLE
+/CLASSIFY=NONMISSING POOLED .
+
+COMPUTE AADEPEN=-26*DEPEN.
+COMPUTE AANINOS=-18*NINOS.
+COMPUTE AANOASI=-6*NOASI15.
+COMPUTE AATRAB15=-9*TRAB15.
+COMPUTE AAHACINA=-6*HACINA.
+COMPUTE AAESC=6*ESC.
+COMPUTE AAOCUPJ=30*OCUPJ_1.
+COMPUTE AAEDAD=.4*EJ.
+COMPUTE AAHECTI E=2*HECTIE1.
+
+IF (DISCAP =0) AADISCAP = 100.
+IF (DISCAP =1) AADISCAP = 94.
+
+IF (estgas =0) AAestgas = 100.
+IF (estgas =1) AAestgas = 74.
+
+IF (licua =0) AAlicua = 100.
+IF (licua =1) AAlicua = 68.
+
+IF (tv=0) AAtv= 100.
+IF (tv=1) AAtv= 77.
+
+EXECUTE .
+
+FREQUENCIES
+  VARIABLES= aadepen aaninos aanoasi aatrab15 aahacina aaesc aaocupj aaedad aahecti e aadiscap aaestgas aalicua aatv
+  /FORMAT=NOTABLE
+  /STATISTICS=MEAN .
+
+COMPUTE aainput = 0 .
+EXECUTE .
+DO IF (MISSING(aadepen) | MISSING(aaninos) | MISSING (aanoasi) | MISSING(aatrab15) | MISSING(aahacina)
+     | MISSING(aaesc) | MISSING(aaocupj) | MISSING(aaedad) | MISSING(aahecti e) | MISSING(aadiscap)
+     | MISSING(aaestgas) | MISSING(aalicua) | MISSING (aatv)) .
+RECODE
+  aainput (0=1) .
+END IF .
+EXECUTE .
+
+RECODE aadepen (SYSMIS = -55.6389) .
+RECODE aaninos (SYSMIS = -32.3077) .
+RECODE aanoasi (SYSMIS = -2.3590) .
+RECODE aatrab15 (SYSMIS = -1.3077) .
+RECODE aahacina (SYSMIS = -24.7045) .
+RECODE aaesc (SYSMIS = 15.8462) .
+RECODE aaocupj (SYSMIS = 13.6560) .
+RECODE aaedad (SYSMIS = 16.0187) .
+RECODE aahecti e (SYSMIS =1.6923) .
+RECODE aadiscap (SYSMIS = 99.2564) .
+RECODE aaestgas (SYSMIS = 74.4502) .
+ECODE aalicua (SYSMIS = 70.4935) .
+RECODE aatv (SYSMIS = 78.3000) .
+
+EXECUTE .
+
+COMPUTE aacalif = aadepen + aaninos + aanoasi + aatrab15 + aahacina + aaesc + aaocupj + aaedad + aahecti e
+
+--- Page 23/284 ---
+
+     + aadiscap + aaestgas + aalicua + aatv .
+
+EXECUTE .
+
+DISCRIMINANT
+  /GROUPS=LP98(0 1)
+  /VARIABLES=aacalif
+  /ANALYSIS ALL
+  /SAVE=CLASS
+  /PRIORS = .42 .58
+  /STATISTICS=raw TABLE CROSSVALID
+  /CLASSIFY=NONMISSING POOLED .
+
+USE ALL.
+COMPUTE filter_$=(dis_2 = 0).
+VARIABLE LABEL filter_$ 'dis_2 = 0 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+  VARIABLES=aacalif
+  /FORMAT=NOTABLE
+  /STATISTICS=MINIMUM .
+
+USE ALL.
+COMPUTE filter_$=(dis_2 = 1).
+VARIABLE LABEL filter_$ 'dis_2 = 1 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+  VARIABLES=aacalif
+  /FORMAT=NOTABLE
+  /STATISTICS= MAXIMUM .
+
+FILTER OFF.
+USE ALL.
+EXECUTE .
+
+COMPUTE VIEJITOS = 0 .
+IF ((EJ < 25 & TOTPER < 5) | (EJ > 65 & EJ < 98 & TOTPER < 3)) VIEJITOS = -100 .
+
+COMPUTE AACALIF1 = AACALIF + VIEJITOS .
+EXECUTE.
+IF (agua1=1 & luz=1 & piso= 1) AACALIF1=AACALIF1-100 .
+EXECUTE .
+
+COMPUTE aapobre = 0 .
+EXECUTE .
+DO IF (aacalif1 < 324.45) .
+RECODE
+  aapobre (0=1) .
+END IF .
+EXECUTE .
+
+FREQUENCIES
+VARIABLES= lp98 aapobre .
+
+--- Page 24/284 ---
+
+REGIÓN 2. SIERRA
+FASE 6
+MODELO bb
+
+DISCRIMINANT
+ /GROUPS=lp98(0 1)
+ /VARIABLES=depen ninos noasi1 trab151 hacina esc ocupj_1
+ estgas ej tv licua
+ /ANALYSIS ALL
+ /SAVE=CLASS
+ /PRIORS=.41 .59
+ /STATISTICS=RAW TABLE
+ /CLASSIFY=NONMISSING POOLED .
+
+COMPUTE BBDEPEN=-42*DEPEN.
+COMPUTE BBNINOS=-9*NINOS.
+COMPUTE BBNOASI=-23*NOASI1.
+COMPUTE BBTRAB15=-1*TRAB151.
+COMPUTE BBHACINA=-11*HACINA.
+COMPUTE BBESC=6*ESC.
+COMPUTE BBOCUPJ=-8*OCUPJ_1.
+COMPUTE BBEDAD=1*EJ.
+
+IF (estgas =0) BBestgas = 100.
+IF (estgas =1) BBestgas = 95.
+
+IF (licua =0) BBlicua = 100.
+IF (licua =1) BBlicua = 88.
+
+IF (tv=0) BBtv= 100.
+IF (tv=1) BBtv= 82.
+
+EXECUTE .
+
+FREQUENCIES
+ VARIABLES= BBdepen BBninos BBnoasi BBtrab15 BBhacina BBesc BBocupj BBedad
+ BBestgas BBlicua BBtv
+ /FORMAT=NOTABLE
+ /STATISTICS=MEAN .
+
+COMPUTE BBinput = 0 .
+EXECUTE .
+DO IF (MISSING(BBdepen) | MISSING(BBninos) | MISSING (BBnoasi)
+    | MISSING(BBtrab15) | MISSING(BBhacina)| MISSING(BBesc) | MISSING(BBocupj)
+    | MISSING(BBedad) | MISSING(BBestgas) | MISSING(BBlicua) | MISSING (BBtv)) .
+RECODE
+ BBinput (0=1) .
+END IF .
+EXECUTE .
+
+RECODE BBdepen (SYSMIS = -107.49) .
+RECODE BBninos (SYSMIS = -14.71) .
+RECODE BBnoasi (SYSMIS = -3.47) .
+RECODE BBtrab15 (SYSMIS = -0.06) .
+RECODE BBhacina (SYSMIS = -42.26) .
+RECODE BBesc (SYSMIS = 21.30) .
+RECODE BBocupj (SYSMIS = 0.94) .
+RECODE BBedad (SYSMIS = 44.23) .
+RECODE BBestgas (SYSMIS = 96.26) .
+RECODE BBlicua (SYSMIS = 92.96) .
+RECODE BBtv (SYSMIS = 91.67) .
+
+EXECUTE .
+
+OMPUTE BBcalif = BBdepen + BBninos + BBnoasi + BBtrab15 +
+                BBhacina + BBesc + BBocupj + BBedad + BBestgas + BBlicua + BBtv .
+
+EXECUTE .
+
+DISCRIMINANT                                                      24/284
+

@@ -1,0 +1,142 @@
+REGION 34
+*/*/* FASE 4 A 6
+*/*/* MODELO BB
+
+DISCRIMINANT
+/GROUPS=lp98(0 1)
+/VARIABLES=depen ninos trab151 esc
+    lava vhs discap ventila
+/ANALYSIS ALL
+/PRIORS = .41 .59
+/STATISTICS=RAW TABLE CROSSVALID
+/CLASSIFY=NONMISSING POOLED .
+
+****PUNTAJES
+
+COMPUTE BBDEPEN=-36*DEPEN .
+COMPUTE BBNINOS=-29*NINOS .
+COMPUTE BBTRAB15 = -53*TRAB151 .
+COMPUTE BBESC = 5*ESC .
+
+IF (DISCAP = 0) BBDISCAP = 100 .
+IF (DISCAP = 1) BBDISCAP =56 .
+
+IF (LAVA=0) BBLAVA= 100 .
+IF (LAVA=1) BBLAVA= 85 .
+
+IF (VHS = 0) BBVHS = 100 .
+IF (VHS = 1) BBVHS = 98 .
+
+IF (VENTILA = 0) BBVENTIL = 100 .
+IF (VENTILA = 1) BBVENTIL = 71 .
+
+EXECUTE.
+
+***calcular las medias de las variables para imputar a valores perdidos
+
+FREQUENCIES
+  VARIABLES= BBdepen BBninos BBtrab15 BBesc
+  BBlava BBvhs BBdiscap BBventil
+  /FORMAT=NOTABLE
+  /STATISTICS=MEAN .
+
+COMPUTE BBinput = 0 .
+EXECUTE .
+DO IF (MISSING(BBdepen) | MISSING(BBninos) | MISSING (BBtrab15)
+  | MISSING(BBesc) | MISSING(BBBinput) | MISSING (aaaguaba)
+  | MISSING(BBlava) | MISSING(BBBblava) |
+  MISSING(BBvhs) | MISSING(BBdiscap) | MISSING(BBventil)) .
+RECODE
+  BBinput (0=1) .
+END IF .
+EXECUTE .
+
+***se recodifican los valores perdidos con las medias de las variables
+
+RECODE BBdepen (SYSMIS=-89.82) .
+RECODE BBninos (SYSMIS=-37.68) .
+RECODE BBtrab15 (SYSMIS=-1.51) .
+RECODE BBesc (SYSMIS=30.91) .
+RECODE BBlava (SYSMIS=88.40) .
+RECODE BBvhs (SYSMIS=98.26) .
+RECODE BBdiscap (SYSMIS=97.33) .
+RECODE BBventil (SYSMIS=78.10) .
+
+***se hace la calificación
+
+COMPUTE BBcalif = BBdepen + BBninos + BBtrab15 + BBesc +
+  BBlava+ BBvhs + BBdiscap
+  + BBventil .
+EXECUTE .
+
+***discriminante con la línea de pobreza
+
+DISCRIMINANT
+/GROUPS=LP98(0 1)
+/VARIABLES=BBcalif
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS = .41 .59
+/STATISTICS=raw TABLE
+/CLASSIFY=NONMISSING POOLED .
+
+--- Page 227/284 ---
+
+USE ALL.
+COMPUTE filter_$=(dis_1 = 0).
+VARIABLE LABEL filter_$ 'dis_1 = 0 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+  VARIABLES=BBcalif
+  /FORMAT=NOTABLE
+  /STATISTICS=MINIMUM .
+
+USE ALL.
+COMPUTE filter_$=(dis_1 = 1).
+VARIABLE LABEL filter_$ 'dis_1 = 1 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+  VARIABLES=BBcalif
+  /FORMAT=NOTABLE
+  /STATISTICS= MAXIMUM .
+
+FILTER OFF.
+USE ALL.
+EXECUTE .
+
+***filtros
+
+IF ((EJ < 25 & TOTPER < 5) | (EJ > 65 & EJ < 98 & TOTPER < 3)) VIEJITOS = -100 .
+RECODE viejitos (SYSMIS = 0) .
+EXECUTE .
+
+COMPUTE BBCALIF = BBCALIF + viejitos .
+EXECUTE.
+
+***se determina la línea de corte y se obtienen los pobres
+
+COMPUTE BBpobre = 0 .
+EXECUTE .
+DO IF (BBcalif < 315.75) .
+RECODE
+  BBpobre (0=1) .
+END IF .
+EXECUTE .
+
+IF (VEHI = 0) BBPOBRE = 0.
+EXECUTE.
+
+FREQUENCIES
+  VARIABLES= lp98 BBpobre .
+
+--- Page 228/284 ---
+
+*/*/* PUNTAJES DE LA 

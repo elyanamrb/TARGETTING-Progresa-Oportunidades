@@ -1,0 +1,263 @@
+REGIÓN 2. SIERRA
+FASE 2
+MODELO zz
+
+SORT CASES BY
+inmh15pc (A) .
+
+COMPUTE LNIN15PC = LN(INMH15PC+1).
+EXECUTE.
+
+IF (LNIN15PC >= 0 & LNIN15PC <= .425) VENT_ING = 1.
+IF (LNIN15PC > .414 & LNIN15PC <= .851) VENT_ING = 2.
+IF (LNIN15PC > .827 & LNIN15PC <= 1.276) VENT_ING = 3.
+IF (LNIN15PC > 1.241 & LNIN15PC <= 1.702) VENT_ING = 4.
+IF (LNIN15PC > 1.654 & LNIN15PC <= 2.127) VENT_ING = 5.
+IF (LNIN15PC > 2.068 & LNIN15PC <= 2.553) VENT_ING = 6.
+IF (LNIN15PC > 2.481 & LNIN15PC <= 2.9785) VENT_ING = 7.
+IF (LNIN15PC > 2.895 & LNIN15PC <= 3.404) VENT_ING = 8.
+IF (LNIN15PC > 3.308 & LNIN15PC <= 3.829) VENT_ING = 9.
+IF (LNIN15PC > 3.722 & LNIN15PC <= 4.255) VENT_ING = 10.
+IF (LNIN15PC > 4.135 & LNIN15PC <= 4.68) VENT_ING = 11.
+IF (LNIN15PC > 4.549 & LNIN15PC <= 5.106) VENT_ING = 12.
+IF (LNIN15PC > 4.962 & LNIN15PC <= 5.531) VENT_ING = 13.
+IF (LNIN15PC > 5.376 & LNIN15PC <= 5.957) VENT_ING = 14.
+IF (LNIN15PC > 5.789 & LNIN15PC <= 6.382) VENT_ING = 15.
+IF (LNIN15PC > 6.203 & LNIN15PC <= 6.808) VENT_ING = 16.
+IF (LNIN15PC > 6.616 & LNIN15PC <= 7.233) VENT_ING = 17.
+IF (LNIN15PC > 7.030 & LNIN15PC <= 7.659) VENT_ING = 18.
+IF (LNIN15PC > 7.443 & LNIN15PC <= 8.084) VENT_ING = 19.
+IF (LNIN15PC > 8.51) VENT_ING = 20.
+EXECUTE.
+
+IF (PISO1 = 1) PISO_1 = -0.69 .
+IF (PISO1 = 2) PISO_1 = 1.47 .
+IF (PISO1 = 3) PISO_1 = 0.76 .
+
+IF (PARED1 = 1) PARED_1 = 2.53 .
+IF (PARED1 = 2) PARED_1 = -1.68 .
+IF (PARED1 = 3) PARED_1 = 1.32 .
+IF (PARED1 = 4) PARED_1 = -1.12 .
+IF (PARED1 = 5) PARED_1 = 0.47 .
+IF (PARED1 = 6) PARED_1 = 0.06 .
+IF (PARED1 = 7) PARED_1 = -1.98 .
+IF (PARED1 = 8) PARED_1 = 0.29 .
+IF (PARED1 = 9) PARED_1 = -2.37 .
+IF (PARED1 = 10) PARED_1 = 2.56 .
+IF (PARED1 = 11) PARED_1 = 0.07 .
+IF (PARED1 = 12) PARED_1 = -2.77 .
+IF (PARED1 = 13) PARED_1 = -2.48 .
+IF (PARED1 = 14) PARED_1 = 1.57 .
+
+IF (AGUABA1 = 1) AGUABA_1 = 0.68 .
+IF (AGUABA1 = 2) AGUABA_1 = -3.21 .
+IF (AGUABA1 = 3) AGUABA_1 = 0.85 .
+IF (AGUABA1 = 4) AGUABA_1 = -0.47 .
+IF (AGUABA1 = 5) AGUABA_1 = -2.09 .
+IF (AGUABA1 = 6) AGUABA_1 = .85 .
+IF (AGUABA1 = 7) AGUABA_1 = -2.24.
+IF (AGUABA1 = 8) AGUABA_1 = 4.08 .
+
+IF (OCUPJ = 0) OCUPJ_1 = -0.42 .
+IF (OCUPJ = 1) OCUPJ_1 = 1.47.
+IF (OCUPJ = 2) OCUPJ_1 = 1.92 .
+IF (OCUPJ = 3) OCUPJ_1 = .067 .
+IF (OCUPJ = 4) OCUPJ_1 = 1.3 .
+IF (OCUPJ = 5) OCUPJ_1 = -1.33 .
+IF (OCUPJ = 6) OCUPJ_1 = 0.71 .
+IF (OCUPJ = 7) OCUPJ_1 = 1.91 .
+IF (OCUPJ = 8) OCUPJ_1 = 0.004 .
+IF (OCUPJ = 9) OCUPJ_1 = -2.03 .
+
+--- Page 19/284 ---
+
+EXECUTE.
+
+DISCRIMINANT
+/GROUPS=lpnva(0 1)
+/VARIABLES=depen ninos noasi1 trab15! hacina esc ocupj_1 discap estgas p08 tv licua hectie1
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS=.42 .58
+/STATISTICS=RAW TABLE
+/CLASSIFY=NONMISSING POOLED .
+
+COMPUTE animales = 1 .
+EXECUTE .
+DO IF ((p721 >= 15 & p721 < 99) | (p722 >= 15 & p722 < 99) | (p723 >= 15 & p723 < 99)|
+(p731 >= 20 & p731 < 99) | (p732 >= 15 & p732 < 99) | (p733 >= 25 & p733 < 99) | (p734 >= 15 & p734 < 99) |
+(p735 >= 25 & p735 < 99) ) .
+RECODE
+animales (1=0) .
+END IF .
+EXECUTE .
+
+COMPUTE enseres = 0 .
+EXECUTE .
+DO IF (lava = 1 & refri = 1 & vehi = 1 & licua = 1 & bao = 1 & agua = 1 & luz = 1 & tv = 1 & animales = 1) .
+RECODE
+enseres (0=1) .
+END IF .
+EXECUTE .
+
+COMPUTE patron = 1 .
+EXECUTE .
+DO IF (p25=4) .
+RECODE
+patron (1=0) .
+END IF .
+EXECUTE .
+
+compute indisp = 0 .
+execute.
+do if (luz + agua + piso =3) .
+recode
+indisp (0=1).
+end if.
+execute.
+
+compute anitie = 0 .
+execute .
+do if (animtrab + animcons + tierra=3) .
+recode anitie (0=1).
+end if .
+execute .
+
+compute VIEJITOS = 0 .
+execute.
+do if ((P08<25 & TOTPERS<5) | (P08>65 & TOTPERS <3)) .
+recode
+VIEJITOS (0=1).
+end if.
+execute.
+
+COMPUTE ZZDEPEN=-26*DEPEN.
+COMPUTE ZZNINOS=-18*NINOS.
+COMPUTE ZZNOASI=-6*NOASI15.
+COMPUTE ZZTRAB15=-9*TRAB15.
+COMPUTE ZZHACINA=-6*HACINA.
+COMPUTE ZZESC=6*ESC.
+COMPUTE ZZOCUP=30*OCUPJ_1.
+COMPUTE ZZP08=.4*P08.
+COMPUTE ZZHECTIE=2*HECTIE1.
+
+IF (DISCAP =0) ZZDISCAP = 100.
+
+--- Page 20/284 ---
+
+IF (DISCAP =1) ZZDISCAP = 94.
+
+IF (estgas =0) ZZestgas = 100.
+IF (estgas =1) ZZestgas = 74.
+
+IF (licua =0) ZZlicua = 100.
+IF (licua =1) ZZlicua = 68.
+
+IF (tv=0) ZZtv= 100.
+IF (tv=1) ZZtv= 77.
+
+if (VEHI=0) ZZVEHI= 100.
+IF (VEHI=1) ZZVEHI= 0.
+
+IF (LAVA=0) ZZLAVA= 100.
+IF (LAVA=1) ZZLAVA= 0.
+
+if (indisp=0) ZZindisp = 0 .
+if (indisp=1) ZZindisp = -100 .
+
+if (anitie=0) ZZanitie=0 .
+if (anitie=1) ZZanitie=-100 .
+
+if (refri=0) ZZrefri=100 .
+if (refri=1) ZZrefri=0 .
+
+if (viejitos=0) ZZVIEJ = 0 .
+if (viejitos=1) ZZVIEJ = -100 .
+execute.
+
+FREQUENCIES
+VARIABLES= ZZdepen ZZninos ZZnoasi ZZtrab15 ZZhacina ZZesc ZZocup ZZdiscap
+ZZP08 ZZestgas ZZlicua ZZVEHI ZZLAVA ZZINDISP ZZANITIE ZZREFRI ZZTV ZZHECTIE ZZVIEJ
+/FORMAT=NOTABLE
+/STATISTICS=MEAN .
+
+RECODE ZZdepen (SYSMIS=-68.616) .
+RECODE ZZninos (SYSMIS=-43.549) .
+RECODE ZZnoasi (SYSMIS=-1.992) .
+RECODE ZZtrab15 (SYSMIS=-2.906) .
+RECODE ZZhacina (SYSMIS=-28.975) .
+RECODE ZZesc (SYSMIS=20.159) .
+RECODE ZZocup (SYSMIS=-1.45) .
+RECODE ZZdiscap (SYSMIS=99.703) .
+RECODE ZZP08 (SYSMIS=17.84) .
+RECODE ZZestgas (SYSMIS=77.595) .
+RECODE ZZlicua (SYSMIS=75.7448) .
+RECODE ZZvehi (SYSMIS=3.02) .
+RECODE ZZTV (SYSMIS=83.1729) .
+RECODE ZZLAVA (SYSMIS=.3946) .
+RECODE ZZindisp (sysmis=-17.783).
+RECODE ZZanitie (sysmis=-25.229) .
+RECODE ZZrefri (sysmis= 7.538) .
+RECODE ZZHECTIE (sysmis= 6.39) .
+RECODE ZZVIEJ(SYSMIS=-17.78)
+
+COMPUTE ZZcalif = ZZdepen + ZZninos + ZZnoasi + ZZtrab15 + ZZhacina +
+ZZesc + ZZocup + ZZdiscap + ZZP08 + ZZestgas + ZZlicua + ZZtv + ZZHECTIE.
+EXECUTE .
+
+DISCRIMINANT
+/GROUPS=lpnva(0 1)
+/VARIABLES=ZZcalif
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS = .42 .58
+/STATISTICS=raw TABLE
+/CLASSIFY=NONMISSING POOLED .
+
+USE ALL.
+COMPUTE filter_$=(dis_5 = 0).
+VARIABLE LABEL filter_$ 'dis_5 = 0 (FILTER)'.
+
+--- Page 21/284 ---
+
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+VARIABLES=ZZcalif /FORMAT=NOTABLE
+/STATISTICS=MINIMUM .
+
+USE ALL.
+COMPUTE filter_$=(dis_5 = 1).
+VARIABLE LABEL filter_$ 'dis_5 = 1 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+  VARIABLES=ZZcalif /FORMAT=NOTABLE
+  /STATISTICS= MAXIMUM .
+
+FILTER OFF.
+USE ALL.
+EXECUTE .
+
+COMPUTE ZZcalif = ZZcalif + ZZvehi + ZZindisp + ZZrefri + ZZLAVA + ZZVIEJ.
+EXECUTE .
+
+COMPUTE zzpobre = 0 .
+EXECUTE .
+DO IF (ZZcalif < 291.5) .
+RECODE
+  zzpobre (0=1) .
+END IF .
+EXECUTE .
+
+(zzpobre=1 & VEHI=0) zzPOBRE=9.
+recode zzpobre (9=0).
+
+--- Page 22/284 ---
+

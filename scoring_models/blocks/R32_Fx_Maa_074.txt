@@ -1,0 +1,364 @@
+región 32**************
+*******************************************
+
+***Modelo AA
+
+SCRIMINANT
+GROUPS=LP98(0 1)
+/VARIABLES= depen ninos  trab151 ocupj_1 esc discap
+ piso_1 aguaba_1 pared_1  hectie1 radio estgas vhs vehi lava
+cal_agua tocadisc ventila
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS = .42 .58
+/STATISTICS=raw TABLE CROSSVALID
+/CLASSIFY=NONMISSING POOLED .
+
+***Calificación
+
+IF (PERCEP = 0) DEPEN = 99 .
+RECODE DEPEN (99 = SYSMIS) .
+
+COMPUTE AADEPEN=.52*DEPEN .
+COMPUTE AANINOS=.18*NINOS .
+COMPUTE AATRAB15 = .75 * TRAB151 .
+COMPUTE AAOCUPJ = 8 * OCUPJ_1 .
+COMPUTE AAESC = 3 * ESC .
+COMPUTE AAPISO = 2 * PISO1.
+COMPUTE AAAGUABA = 3*AGUABA_1 .
+COMPUTE AAPARED = .13 * PARED1.
+COMPUTE AAHECTI = 1 * HECTIE1 .
+
+IF (DISCAP = 0) AADISCAP = 100 .
+IF (DISCAP = 1) AADISCAP = 78 .
+
+IF (RADIO = 0) AARADIO = 100 .
+IF (RADIO = 1) AARADIO = 93 .
+
+IF (ESTGAS = 0) AAESTGAS = 100.
+IF (ESTGAS = 1) AAESTGAS = 81 .
+
+IF (VHS = 0) AAVHS = 100 .
+IF (VHS = 0) AAVHS = 80 .
+
+IF (VEHI=0) AAVEHI= 100 .
+IF (VEHI=1) AAVEHI= 78 .
+
+IF (LAVA = 0) AALAVA = 100 .
+IF (LAVA = 1) AALAVA = 83 .
+
+IF (CAL_AGUA = 0) AACAL_AG = 100 .
+IF (CAL_AGUA = 1) AACAL_AG = 90 .
+
+IF (TOCADISC = 0) AATOCADI = 100 .
+IF (TOCADISC = 1) AATOCADI = 83 .
+
+IF (VENTILA = 0) AAVENTI = 100 .
+IF (VENTILA = 1) AAVENTI = 85 .
+
+EXECUTE .
+
+***calcular las medias de las variables para imputar a valores perdidos
+
+FREQUENCIES
+  VARIABLES= aadepen aaninos aatrab15 aaocupj aaesc aapiso aaaguaba aapared aahecti aadiscap
+             aaradio aaestgas aavhs aavehi aalava aacal_ag aatocadi aaventi
+  /FORMAT=NOTABLE
+  /STATISTICS=MEAN .
+
+COMPUTE ainput = 0 .
+EXECUTE .
+DO IF (MISSING(aadepen) | MISSING(aaninos) | MISSING(aatrab15) | MISSING(aaocupj) | MISSING(aaesc)
+| MISSING(aapiso) | MISSING(aaaguaba) | MISSING(aapared) | MISSING(aahecti) | MISSING(aadiscap) | MISSING(aaradio)
+| MISSING(aaestgas) | MISSING(aavhs) | MISSING(aavehi) | MISSING (aalava) | MISSING(aacal_ag) | MISSING (aatocadi)
+| MISSING(aaventi) ) .
+RECODE
+  ainput (0=1) .
+END IF .
+EXECUTE .
+
+--- Page 205/284 ---
+
+COMPUTE aainput = 0 .
+EXECUTE .
+DO IF (MISSING(aadepen) | MISSING(aaninos) | MISSING(aatrab15) | MISSING(aaocupj) | MISSING(aaesc)
+| MISSING(aapiso) | MISSING(aaaguaba) | MISSING(aapared) | MISSING(aahectte) | MISSING(aadiscap) | MISSING(aaradio)
+| MISSING(aaestgas) | MISSING(aavhs) | MISSING(aavehi) | MISSING (aalava) | MISSING(aacal_ag) | MISSING (aatocadi)
+| MISSING(aaventi) ) .
+RECODE
+aainput (0=1)
+END IF .
+EXECUTE .
+
+***se recodifican los valores perdidos con las medias de las variables
+
+RECODE aadepen (SYSMIS=-105.77) .
+RECODE aaninos (SYSMIS=-21.24) .
+RECODE aatrab15 (SYSMIS = -2.05) .
+RECODE aaocupj (SYSMIS = 0.10) .
+RECODE aaesc (SYSMIS= 11.24) .
+RECODE aapiso (SYSMIS = 3.38) .
+RECODE aaaguaba (SYSMIS= 0.03) .
+RECODE aapared (SYSMIS=-125.74) .
+RECODE aahectte (SYSMIS = 7.14) .
+RECODE aadiscap (SYSMIS = 98.79) .
+RECODE aaradio (SYSMIS=97.55) .
+RECODE aaestgas (SYSMIS = 93.25) .
+RECODE aavhs (SYSMIS = 80.00) .
+RECODE aavehi (SYSMIS=83.21) .
+RECODE aalava (SYSMIS=87.52) .
+RECODE aacal_ag (SYSMIS = 90.35) .
+RECODE aatocadi (SYSMIS=84.41) .
+RECODE aaventi (SYSMIS = 93.76) .
+
+***se hace la calificación
+
+COMPUTE aacalif = aadepen + aaninos + aatrab15 + aaocupj + aaesc + aapiso + aaaguaba + aapared + aahectte
++ aadiscap + aaradio + aaestgas + aavhs + aavehi + aalava + aacal_ag + aatocadi + aaventi .
+
+EXECUTE .
+
+***se calcula la línea de corte y se obtienen los pobres
+***se checa el mínimo y el máximo y se toma el punto intermedio como línea de corte
+
+DISCRIMINANT
+/GROUPS=LP98(0 1)
+/VARIABLES=AAcalif
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS = .48 .52
+/STATISTICS=raw TABLE CROSSVALID
+/CLASSIFY=NONMISSING POOLED .
+
+USE ALL.
+COMPUTE filter_$=(dis_1= 0).
+VARIABLE LABEL filter_$ 'dis_1 = 0 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+VARIABLES=AAcalif
+/FORMAT=NOTABLE
+/STATISTICS=MINIMUM .
+
+USE ALL.
+COMPUTE filter_$=(dis_1 = 1).
+
+205/284
+
+--- Page 206/284 ---
+
+VARIABLE LABEL filter_$ 'dis_1 = 1 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+VARIABLES=AAcalif
+/FORMAT=NOTABLE
+/STATISTICS= MAXIMUM .
+
+FILTER OFF.
+USE ALL.
+EXECUTE .
+
+***filtros
+
+COMPUTE VIEJITOS = 0.
+IF ((ej < 25 & TOTPER < 5) | (ej > 65 & ej < 98 & TOTPER < 3)) VIEJITOS = -100 .
+
+COMPUTE AACALIF1 = AACALIF + VIEJITOS .
+
+EXECUTE.
+
+***se checa el mínimo y el máximo y se toma el punto intermedio como línea de corte
+
+COMPUTE aapobre = 0 .
+DO IF (aacalif1 < 605.50) .
+RECODE
+aapobre (0=1) .
+END IF .
+EXECUTE .
+
+IF (SEG_SOC > 0 & SEG_SOC < 6) SEGURO = 1 .
+IF (FAM_ENTR >= 1 & FAM_ENTR <= 7) FAM_BIEN = 1 .
+
+IF ((SEGURO = 1 | FAM_BIEN = 1) & AAPOBRE = 1) ELIMIN = 1 .
+
+RECODE SEGURO FAM_BIEN ELIMIN (SYSMIS = 0) .
+
+IF (ELIMIN = 1) AAPOBRE = 0 .
+
+EXECUTE .
+
+FREQUENCIES
+VARIABLES = lp98 AAPOBRE ELIMIN.
+
+COMPUTE fecha = 990702 .
+COMPUTE FOPO = 12 .
+EXECUTE.
+
+SORT CASES BY
+entidad (A) mpio (A) local (A) folio (A) .
+
+SAVE OUTFILE='e:\fase8\PUNTEOREG_32\reg32j_12.sav'
+/COMPRESSED.
+
+AGGREGATE
+/OUTFILE='E:\fase8\punteo\REG_32\AGGR.SAV'
+/BREAK=entidad mpio local folio
+/aapobre = FIRST(aapobre).
+
+GET
+FILE='E:\fase8\punteo\REG_32\Aggr.sav'.
+EXECUTE .
+
+FILTER OFF.
+
+206/284
+
+--- Page 207/284 ---
+
+USE ALL.
+SELECT IF(aapobre = 1).
+EXECUTE .
+
+SAVE TRANSLATE OUTFILE='E:\Fase8\punteo\entregas\990702\fopo32_12.dbf'
+/TYPE=DB4 /MAP /REPLA.
+
+***LOCS
+
+***crear archivo de control
+
+GET
+FILE='E:\Fase8\PUNTEOREG_32\reg32j_12.sav'.
+EXECUTE .
+
+IF (aapobre = 1) FOLPOB = 1.
+IF (aapobre = 1) PERPOB = TOTPER .
+RECODE FOLPOB PERPOB (SYSMIS = 0).
+
+COMPUTE X = 1 .
+
+EXECUTE.
+
+SAVE OUTFILE='E:\fase8\punteo\REG_32\reg32j_12.sav'
+/COMPRESSED.
+
+AGGREGATE
+/OUTFILE='E:\fase8\punteo\reg_32\locs32_12.sav'
+/BREAK=entidad mpio local
+/hoglocal = SUM(x) /totper_1 = SUM(totper) /hogpobre = SUM(folpob) /perpob_1 =
+SUM(perpob) /region = FIRST(region) /fecha = FIRST(fecha) / fopo = FIRST(fopo) .
+
+GET
+FILE='E:\fase8\punteo\reg_32\locs32_12.sav'.
+EXECUTE .
+
+SAVE TRANSLATE OUTFILE='E:\fase8\PUNTEOLOCAL$\990702\locs32_12.dbf '
+/TYPE=DB4
+/COMPRESSED.
+
+************************************************************************
+***Para verificar hogares analizados y hogares beneficiarios*****
+************************************************************************
+
+DESCRIPTIVES
+VARIABLES=hoglocal hogpobre
+/STATISTICS=SUM .
+
+***Para verificar la información de jefes
+
+GET
+FILE='E:\fase8\PUNTEOREG_32\reg32j_12.sav'.
+EXECUTE .
+
+FREQUENCIES
+VARIABLES=peryejef
+/ORDER ANALYSIS .
+
+***Para verificar la información de personas
+
+GET
+FILE='E:\fase8\PUNTEOREG_32\reg32p_12.sav'.
+EXECUTE .
+
+RENAME VARIABLES
+ent_fed = entidad / munici = mpio / locali = local .
+
+207/284
+
+--- Page 208/284 ---
+
+SORT CASES BY
+entidad (A) mpio (A) local (A) folio (A) .
+
+MATCH FILES /FILE=*
+/TABLE='E:\Fase8\Punteo\Reg_32\reg32j_12.sav'
+/RENAME (aaaguaba aacal_ag aacalif aacalif1 aadepen aadiscap aaesc aaestgas
+aahectte aainput aalava aaninos aaocupj aapared aapiso aaradio aatocadi
+aatrab15 aavehi aaventi aavhs adm_gas_ agua1 agua_1 agua_ter agua_viv
+aguaba1 aguaba_1 anim1 anim2 anim3 anim4 anim5 anim6 anim7 anim8 animales
+apo_ing_ asj_esc ate_med_ auto_pro bao bao1 bao_1 bao_agua bueyes burros
+caballos cal_agua camion_p cerdos chivos con_inac con_tra conejos conyuge
+cuan_mur d_r depen dias_tra dif_hog disc_ani disc_ens discap edad edo_civ ej
+ej_1erfr elimin emigro es_ayuda es_ciega es_falta es_menta es_muda es_sorda
+esc estgas fam_bien fam_entr fecha folpob fopo gallinas hacina hect_rie
+hect_tem hecte1 ido_esc ing_hog inm15_1 inmh15pc inmp_1 itmh itmh15
+itmh15pe itmh15tp itmh_tpe itmhtper lava leche leer_esc leng_esp leng_mas
+lengua licua lmn15pc lp98 luz med_min_ mot_no_t mu15a49 muro na8a17 nin0a1
+nin5a5 nin5a15 nin6a7 nin8a15 nin_sol ninos
+no8a17 noas11 noas115 num_dias num_hec num_hog ocupj ocupj1 ocupj_1 pared1
+pared_1 per_ayud per_cieg per_falt per_ment per_muda per_muri per_ocup
+per_sord percep perpob peryejef piso piso1 piso_1 predios prod_cui radio
+refri region reses result seg_mas seg_soc seguro sexo sit_viv taller techo
+tierra tit_lech tit_tort tocadisc tom_dec_ ton_cos1 ton_cos2 ton_cos3
+tortilla tot_anim tot_cuar tot_per totper totpers trab trab15 trab151
+trab_tem ttem_din ttem_m ttem_mas ttem_mdi ttem_mes tv_ult vgr_ult_niv
+v111 v112 v40 v42 v44 v46 v66 v67 v96 v97 vehi ventila ver_ing_ ventana vhs
+viejitos x = d0 d1 d2 d3 d4 d5 d6 d7 d8 d9 d10 d11 d12 d13 d14 d15 d16 d17
+d18 d19 d20 d21 d22 d23 d24 d25 d26 d27 d28 d29 d30 d31 d32 d33 d34 d35 d36
+d37 d38 d39 d40 d41 d42 d43 d44 d45 d46 d47 d48 d49 d50 d51 d52 d53 d54 d55
+d56 d57 d58 d59 d60 d61 d62 d63 d64 d65 d66 d67 d68 d69 d70 d71 d72 d73 d74
+d75 d76 d77 d78 d79 d80 d81 d82 d83 d84 d85 d86 d87 d88 d89 d90 d91 d92 d93
+d94 d95 d96 d97 d98 d99 d100 d101
+d102 d103 d104 d105 d106 d107 d108 d109 d110 d111 d112 d113 d114 d115 d116
+d117 d118 d119 d120 d121 d122 d123 d124 d125 d126 d127 d128 d129 d130 d131
+d132 d133 d134 d135 d136 d137 d138 d139 d140 d141 d142 d143 d144 d145 d146
+d147 d148 d149 d150 d151 d152 d153 d154 d155 d156 d157 d158 d159 d160 d161
+d162 d163 d164 d165 d166 d167 d168 d169 d170 d171 d172 d173 d174 d175 d176
+d177 d178 d179 d180 d181 d182 d183 d184 d185 d186 d187 d188 d189 d190 d191
+d192 d193 d194 d195 d196 d197 d198 d199 d200 d201 d202)
+/BY entidad mpio local folio
+/DROP= d1 d2 d3 d4 d5 d6 d7 d8 d9 d10 d11 d12 d13 d14 d15 d16 d17 d18 d19
+d20 d21 d22 d23 d24 d25 d26 d27 d28 d29 d30 d31 d32 d33 d34 d35 d36 d37 d38
+d39 d40 d41 d42 d43 d44 d45 d46 d47 d48 d49 d50 d51 d52 d53 d54 d55 d56 d57
+d58 d59 d60 d61 d62 d63 d64 d65 d66 d67 d68 d69 d70 d71 d72 d73 d74 d75 d76
+d77 d78 d79 d80 d81 d82 d83 d84 d85 d86 d87 d88 d89 d90 d91 d92 d93 d94 d95
+d96 d97 d98 d99 d100 d101 d102 d103 d104 d105 d106 d107 d108 d109 d110 d111
+d112
+d113 d114 d115 d116 d117 d118 d119 d120 d121 d122 d123 d124 d125 d126 d127
+d128 d129 d130 d131 d132 d133 d134 d135 d136 d137 d138 d139 d140 d141 d142
+d143 d144 d145 d146 d147 d148 d149 d150 d151 d152 d153 d154 d155 d156 d157
+d158 d159 d160 d161 d162 d163 d164 d165 d166 d167 d168 d169 d170 d171 d172
+d173 d174 d175 d176 d177 d178 d179 d180 d181 d182 d183 d184 d185 d186 d187
+d188 d189 d190 d191 d192 d193 d194 d195 d196 d197 d198 d199 d200 d201 d202.
+EXECUTE.
+
+FREQUENCIES
+VARIABLES=AAPOBRE .
+
+***
+
+SAVE OUTFILE='e:\fase8\punteo\REG_32\reg32p_12.sav'
+/COMPRESSED.
+
+208/284
+
+--- Page 209/284 ---
+
+******************************************
+********puntajes 

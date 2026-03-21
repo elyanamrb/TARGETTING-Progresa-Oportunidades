@@ -1,0 +1,206 @@
+región 39
+
+**método de STEPWISE
+
+DISCRIMINANT
+/GROUPS=lp98(0 1)
+/VARIABLES=hacina depen ninos noasi1 trab151 ocupj_1 ej esc lengua discap
+piso_1 bao_1 agua_1 aguaba_1 pared_1 luz hectie1 radio estgas tv vhs refri vehi lava licua
+cal_agua tocadisc ventila
+/ANALYSIS ALL
+/SAVE=CLASS
+/METHOD=WILKS
+/FIN= 3.84
+/FOUT= 2.71
+/PRIORS .42 .58
+/HISTORY
+/STATISTICS=BOXM RAW TABLE
+/CLASSIFY=NONMISSING POOLED .
+
+REGRESSION
+/MISSING LISTWISE
+/STATISTICS COEFF OUTS R ANOVA
+/CRITERIA=PIN(.05) POUT(.10)
+/NOORIGIN
+/DEPENDENT lp98
+/METHOD=ENTER hacina depen ninos noasi1 trab151 ocupj_1 ej esc lengua discap
+piso_1 bao_1 agua_1 aguaba_1 pared_1 luz hectie1 radio estgas tv vhs refri vehi lava licua
+cal_agua tocadisc ventila
+/SAVE PRED .
+
+**Modelo
+
+DISCRIMINANT
+/GROUPS=LP98(0 1)
+/VARIABLES= hacina depen ninos noasi1 trab151 esc
+bao_1 agua_1 pared_1 estgas vhs refri vehi lava
+tocadisc
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS = .42 .58
+/STATISTICS=raw TABLE CROSSVALID
+/CLASSIFY=NONMISSING POOLED .
+
+***Calificación
+
+COMPUTE AAHACINA = -9 * HACINA .
+COMPUTE AADEPEN=-28*DEPEN .
+COMPUTE AANINOS=-16*NINOS .
+COMPUTE AANOASI = -73 * NOASI1 .
+COMPUTE AATRAB15 = -45 * TRAB15 .
+COMPUTE AAESC = 2 * ESC .
+COMPUTE AABAO = -7 * BAO_1 .
+COMPUTE AAAGUA = -32 * AGUA_1.
+COMPUTE AAPARED = -40 * PARED_1 .
+
+IF (ESTGAS = 0) AAESTGAS = 100 .
+IF (ESTGAS = 1) AAESTGAS = 79 .
+
+IF (VHS = 0) AAVHS = 100 .
+IF (VHS = 1) AAVHS = 65 .
+
+IF (REFRI = 0) AAREFRI = 100 .
+IF (REFRI = 1) AAREFRI = 69 .
+
+IF (VEHI=0) AAVEHI= 100 .
+IF (VEHI=1) AAVEHI= 50 .
+
+--- Page 235/284 ---
+
+IF (LAVA = 0) AALAVA = 100 .
+IF (LAVA = 1) AALAVA = 78 .
+
+IF (TOCADISC = 0) AATOCADI = 100 .
+IF (TOCADISC = 1) AATOCADI = 65 .
+
+EXECUTE .
+
+***calcular las medias de las variables para imputar a valores perdidos
+
+FREQUENCIES
+VARIABLES= aahacina aadepen aaninos aanoasi aatrab15 aaesc aabao
+aaagua aapared aaestgas aavhs aarefri aavehi aalava aatocadi
+/FORMAT=NOTABLE
+/STATISTICS=MEAN .
+
+COMPUTE ainput = 0 .
+DO IF (MISSING(aahacina) |MISSING(aadepen) | MISSING(aaninos) | MISSING(aanoasi) | MISSING(aatrab15)
+| MISSING(aaesc) | MISSING(aabao) | MISSING(aaagua) | MISSING(aapared)
+| MISSING(aaestgas) |MISSING(aavhs) | MISSING (aarefri) | MISSING(aavehi) | MISSING (aalava) | MISSING (aatocadi)) .
+RECODE
+ainput (0=1) .
+END IF .
+EXECUTE .
+
+***se recodifican los valores perdidos con las medias de las variables
+
+RECODE aahacina (SYSMIS = -26.0098) .
+RECODE aadepen (SYSMIS=-61.4208) .
+RECODE aaninos (SYSMIS=-20.0802) .
+RECODE aanoasi (SYSMIS = -6.3239) .
+RECODE aatrab15 (SYSMIS = -5.0287) .
+RECODE aaesc (SYSMIS=7.7421) .
+RECODE aabao (SYSMIS = -9.4625) .
+RECODE aaagua (SYSMIS=-15.9826) .
+RECODE aapared (SYSMIS=-70.4653) .
+RECODE aaestgas (SYSMIS=86.6034) .
+RECODE aavhs (SYSMIS=66.0116) .
+RECODE aarefri (SYSMIS = 80.0460) .
+RECODE aavehi (SYSMIS=50.4335) .
+RECODE aalava (SYSMIS=80.9164) .
+RECODE aatocadi (SYSMIS = 66.4203) .
+
+***se hace la calificación
+
+COMPUTE aacalif = aahacina + aadepen + aaninos + aanoasi + aatrab15 + aaesc + aabao + aaagua +
+aapared + aaestgas + aavhs + aarefri + aavehi + aalava + aatocadi .
+
+EXECUTE .
+
+***filtro de viejitos
+
+if ((EJ<=24 & totper<=4) | (EJ>=65 & totper<=2)) viejitos = -100 .
+RECODE viejitos (sysmis=0) .
+
+compute aacalif1 = aacalif + viejitos .
+
+EXECUTE.
+
+***se checa el mínimo y el máximo y se toma el punto intermedio como línea de corte
+
+COMPUTE aapobre = 0 .
+DO IF (aacalif1 < 263.10) .
+RECODE
+aapobre (0=1) .
+END IF .
+EXECUTE .
+
+IF (VEHI = 0) AAPOBRE = 0 .
+EXECUTE.
+
+--- Page 236/284 ---
+
+FREQUENCIES
+VARIABLES = lp98 AAPOBRE .
+
+COMPUTE FECHA = 981216 .
+
+COMPUTE FOPO =18 .
+
+EXECUTE.
+
+SAVE OUTFILE='g:\4_5Y6fas\punteo\REG_39\reg39j_18.sav'
+/COMPRESSED.
+
+AGGREGATE
+/OUTFILE='E:\4_5Y6fas\punteo\REG_39\AGGR.SAV'
+/BREAK=entidad mpio local folio
+/aapobre = FIRST(aapobre).
+
+GET
+FILE='g:\4_5Y6fas\punteo\REG_39\Aggr.sav'.
+EXECUTE .
+
+FILTER OFF.
+USE ALL.
+SELECT IF(aapobre = 1).
+EXECUTE .
+
+SAVE TRANSLATE OUTFILE='g:\4_5Y6fas\punteo\REG_39\fopo39_18.dbf'
+/TYPE=DB4 /MAP /REPLA.
+
+***LOCS
+
+***crear archivo de control
+
+GET
+FILE='g:\4_5y6fas\PUNTEO\REG_39\reg39j_18.sav'.
+EXECUTE .
+
+IF (aapobre = 1) FOLPOB = 1.
+IF (aapobre = 1) PERPOB = TOTPER .
+RECODE FOLPOB PERPOB (SYSMIS = 0) .
+
+COMPUTE X = 1 .
+
+EXECUTE.
+
+SAVE OUTFILE='g:\4_5y6fas\punteo\REG_39\reg39j_18.sav'
+/COMPRESSED.
+
+AGGREGATE
+/OUTFILE='g:\4_5y6fas\punteo\reg_39\locs39_18.sav'
+/BREAK=entidad mpio local
+/hoglocal = SUM(x) /totper_1 = SUM(totper) /hogpobre = SUM(folpob) /perpob_1 =
+SUM(perpob) /region = FIRST(region) /fecha = FIRST(fecha) / fopo = FIRST(fopo) .
+
+GET
+FILE='g:\4_5y6fas\punteo\reg_39\locs39_18.sav'.
+EXECUTE .
+
+SAVE TRANSLATE OUTFILE='g:\4_5y6fas\PUNTEO\LOCALS\981216\locs39_18.dbf '
+/TYPE=DB4
+/COMPRESSED.
+
+--- Page 237/284 ---
+

@@ -1,0 +1,263 @@
+--- Page 107/284 ---
+
+Región 9. Campeche Rural
+Fase 1
+Modelo aa
+
+**puntajes región 9
+
+***discriminante con modelo nuevo
+
+DISCRIMINANT
+/GROUPS=lp98(0 1)
+/VARIABLES=depen ninos noasi1 trab151 hacina esc ej piso_1 aguaba_1 discap estgas
+ventila lengua vehi
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS .42 .58
+/STATISTICS=RAW TABLE
+/CLASSIFY=NONMISSING POOLED .
+
+COMPUTE AADEPEN=-28*DEPEN
+COMPUTE AANINOS=-24*NINOS .
+COMPUTE AANOASI1=-32*NOASI1 .
+COMPUTE AATRAB15 = -52*TRAB151 .
+COMPUTE AAHACINA = -10*HACINA .
+COMPUTE AAESC = 6*ESC .
+COMPUTE AAEJ = 2*EJ .
+COMPUTE AAPISO = 7*PISO_1 .
+COMPUTE AAAGUAB = 4*AGUABA_1 .
+
+IF (DISCAP = 0) AADISCAP = 100 .
+IF (DISCAP = 1) AADISCAP = 91 .
+
+IF (ESTGAS = 0) AAESTGAS = 100 .
+IF (ESTGAS = 1) AAESTGAS = 62 .
+
+IF (LENGUA = 0) AALENGUA = 100 .
+IF (LENGUA = 1) AALENGUA = 93 .
+
+IF (VEHI = 0) AAVEHI = 100 .
+IF (VEHI = 1) AAVEHI = 68 .
+
+EXECUTE.
+
+***calcular las medias de las variables para imputar a valores perdidos
+
+FREQUENCIES
+VARIABLES= aadepen aaninos aanoasi1 aatrab15 aahacina aaesc
+aaej aapiso aaaguab aadiscap aaestgas aalengua aavehi
+/FORMAT=NOTABLE
+/STATISTICS=MEAN .
+
+COMPUTE aainput = 0 .
+EXECUTE .
+DO IF (MISSING(aadepen) | MISSING(aaninos) | MISSING(aanoasi1) | MISSING (aatrab15)
+| MISSING(aahacina) | MISSING(aaesc) | MISSING (aaej)
+| MISSING(aapiso) |MISSING(aaaguab) | MISSING(aadiscap) |
+MISSING(aaestgas) |MISSING(aalengua) | MISSING(aavehi)) .
+RECODE
+aainput (0=1) .
+END IF .
+EXECUTE .
+
+***se recodifican los valores perdidos con las medias de las variables
+
+RECODE aadepen (SYSMIS=-72.14) .
+RECODE aaninos (SYSMIS=-37.31) .
+RECODE aanoasi1 (SYSMIS=-2.17) .
+RECODE aatrab15 (SYSMIS=-2.09) .
+RECODE aahacina (SYSMIS=-36.85) .
+RECODE aaesc (SYSMIS=25.32) .
+                                            107/284
+
+--- Page 108/284 ---
+
+RECODE aaej (SYSMIS=7.93) .
+RECODE aapiso (SYSMIS=-2.66) .
+RECODE aaaguab (SYSMIS=0.01) .
+RECODE aadiscap (SYSMIS=99.72) .
+RECODE aaestgas (SYSMIS=74.49) .
+RECODE aalengua (SYSMIS=99.07) .
+RECODE aavehi (SYSMIS=70.42) .
+
+***se hace la calificación
+
+COMPUTE aacalif = aadepen + aaninos + aanoasi1+ aatrab15 + aahacina +
+aaesc + aaej + aapiso + aaaguab + aadiscap + aaestgas + aalengua + aavehi + 93.21 .
+EXECUTE .
+
+***discriminante con la línea de pobreza
+
+DISCRIMINANT
+/GROUPS=LP98(0 1)
+/VARIABLES=aacalif
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS .42 .58
+/STATISTICS=MEAN STDDEV UNIVF BOXM RAW CORR COV GCOV TABLE CROSSVALID
+/CLASSIFY=NONMISSING POOLED .
+
+USE ALL.
+COMPUTE filter_$=(dis_2 = 0).
+VARIABLE LABEL filter_$ 'dis_2= 0 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+VARIABLES=aacalif
+/FORMAT=NOTABLE
+/STATISTICS=MINIMUM .
+
+USE ALL.
+COMPUTE filter_$=(dis_2 = 1).
+VARIABLE LABEL filter_$ 'dis_2 = 1 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+VARIABLES=aacalif
+/FORMAT=NOTABLE
+/STATISTICS= MAXIMUM .
+
+FILTER OFF.
+USE ALL.
+EXECUTE .
+
+****Filtro
+
+if ((ej<25 & TOTPERS<5) | (ej>65 & TOTPERS <3)) viejitos=100 .
+recode viejitos (sysmis=0) .
+execute .
+
+COMPUTE AAcalif= AAcalif + viejitos .
+EXECUTE .
+
+***se determina la línea de corte y se obtienen los pobres
+
+COMPUTE aapobre = 0 .
+EXECUTE .                                   108/284
+
+--- Page 109/284 ---
+
+DO IF (aacalif < 451.69) .
+RECODE
+  aapobre (0=1) .
+END IF .
+EXECUTE .
+
+IF (VEHI = 0) AAPOBRE = 0 .
+EXECUTE .
+
+
+FREQUENCIES
+VARIABLES=AAPOBRE LPNVA .
+
+COMPUTE FECHA = 70898 .
+
+COMPUTE FOFO = 9 .
+
+COMPUTE NVOPOB = 0 .
+IF (POBRE = 0 & AAPOBRE = 1) NVOPOB = 1.
+
+EXECUTE.
+
+SAVE OUTFILE='K:\SEGUIMIE\BASES\PRIMFASE\REGIONES\Reg9j.sav'
+ /COMPRESSED.
+
+AGGREGATE
+ /OUTFILE='K:\SEGUIMIE\BASES\PRIMFASE\REGIONES\AGGR9.sav'
+ /BREAK=entidad mpio local folio
+ /aapobr_1 = MEAN(nvopob).
+
+GET
+ FILE='K:\SEGUIMIE\BASES\PRIMFASE\REGIONES\AGGR9.sav'.
+EXECUTE .
+
+.ENAME VARIABLES
+    aapobr_1 = aapobre .
+
+FILTER OFF.
+USE ALL.
+SELECT IF(aapobre = 1).
+EXECUTE .
+
+SAVE TRANSLATE OUTFILE='K:\SEGUIMIE\BASES\PRIMFASE\REGIONES\fopo9_e.dbf'
+ /TYPE=DB4 /MAP /REPLA.
+
+--- Page 110/284 ---
+
+Región 9. Campeche Rural
+Fase 2
+Modelo yy
+
+DISCRIMINANT
+ /GROUPS=lpnva(0 1)
+ /VARIABLES= depen ninos noasi15 trab15 hh2 hh3 hh4 hh5 hh6
+escj1 escj2 escj3 ocupj1 ocupj2 ocupj3_4 ocupj5_9 ej2 ej3 ej4 ej5 ej6
+p65_10 tierra discap estgas  radio
+ /ANALYSIS ALL
+ /SAVE=CLASS
+ /PRIORS EQUAL
+ /STATISTICS=RAW TABLE
+ /CLASSIFY=NONMISSING POOLED .
+
+COMPUTE animales = 1 .
+EXECUTE .
+DO IF ((p721 >= 15 & p721 < 99) | (p722 >= 15 & p722 < 99) | (p723 >= 15 & p723 < 99)|
+(p731 >= 20 & p731 < 99) | (p732 >= 15 & p732 < 99) | (p733 >= 25 & p733 < 99) | (p734 >= 15 & p734 < 99) |
+(p735 >= 25 & p735 < 99) ) .
+RECODE
+ animales (1=0) .
+END IF .
+EXECUTE .
+
+COMPUTE enseres = 0 .
+EXECUTE .
+DO IF (lava = 1 & refri = 1 & vehi = 1 & licua = 1
+     & bao = 1 & agua = 1 & luz = 1
+     & tv = 1 & animales = 1) .
+RECODE
+ enseres (0=1) .
+END IF .
+EXECUTE .
+
+.OMPUTE patron = 1 .
+EXECUTE .
+DO IF (p25=4) .
+RECODE
+  patron (1=0) .
+END IF .
+EXECUTE .
+
+COMPUTE YYDEPEN=-24*DEPEN.
+
+COMPUTE YYNINOS=-15*NINOS.
+
+COMPUTE YYNOASI=-6*NOASI15.
+
+COMPUTE YYTRAB15=-24*TRAB15.
+
+IF ( HH1 = 1) YYHACINA=100.
+IF ( HH2 = 1) YYHACINA=44.
+IF ( HH3 = 1) YYHACINA=36.
+IF ( HH4 = 1) YYHACINA=34.
+IF ( HH5 = 1) YYHACINA=31.
+IF ( HH6 = 1 ) YYHACINA=29.
+
+
+IF ( ESCJ1 = 1) YYESC= 75.
+IF ( ESCJ2 = 1) YYESC= 80.
+IF ( ESCJ3 = 1) YYESC= 85.
+IF ( ESCJ4 = 1) YYESC= 100.
+
+IF (OCUPJ0 = 1) YYOCUP= 65.
+IF (OCUPJ1 = 1) YYOCUP= 79.
+IF (OCUPJ2 = 1) YYOCUP= 82.
+IF (OCUPJ3_4 = 1) YYOCUP = 100.
+IF (OCUPJ5_9 = 1) YYOCUP = 74.
+

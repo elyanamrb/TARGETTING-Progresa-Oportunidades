@@ -1,0 +1,263 @@
+Región 10. Costa
+Fase 3
+
+DISCRIMINANT
+/GROUPS=lp98(0 1)
+/VARIABLES=DEPEN    trab151  EJ esc bao_1 piso_1
+           discap licua  ventila radio refri    vehi vhs
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS = .42 .58
+/STATISTICS=MEAN STDDEV UNIVF BOXM RAW CORR GCOV TABLE CROSSVALID
+/CLASSIFY=NONMISSING POOLED .
+
+****Puntaje
+
+COMPUTE AADEPEN=-53*DEPEN.
+COMPUTE AATRAB15=-100*TRAB151 .
+COMPUTE AAEDAD=1*EJ .
+COMPUTE AAESC=6*ESC .
+COMPUTE AABAO=10*BAO_1 .
+COMPUTE AAPISO=14*PISO_1 .
+
+IF (DISCAP =0) AADISCAP = 100.
+IF (DISCAP =1) AADISCAP =73 .
+
+IF (LICUA=0) AALICUA=100 .
+IF (LICUA=1) AALICUA=80 .
+
+IF (VENTILA=0) AAVENT=100 .
+IF (VENTILA=1) AAVENT=71 .
+
+IF (RADIO=0) AARADIO=100 .
+IF (RADIO=1) AARADIO=89 .
+
+IF (REFRI=0) AAREFRI=100 .
+IF (REFRI=1) AAREFRI=85 .
+
+IF (VEHI=0) AAVEHI=100 .
+IF (VEHI=1) AAVEHI=77 .
+
+IF (VHS=0) AAVHS=100 .
+IF (VHS=1) AAVHS=77 .
+
+FREQUENCIES
+VARIABLES= AADEPEN AATRAB15 AAEDAD AAESC AABAO AAPISO
+          AADISCAP AALICUA AAVENT AARADIO AAREFRI    AAVEHI AAVHS
+/FORMAT=NOTABLE
+/STATISTICS=MEAN .
+
+COMPUTE aainput = 0 .
+DO IF ( MISSING(AADEPEN) | MISSING(AATRAB15) | MISSING(AAEDAD) | MISSING(AAESC)
+| MISSING(AABAO) | MISSING(AAPISO) |
+missing(AADISCAP) | missing(AALICUA) | missing(AAVENT) | missing(AARADIO) | missing(AAREFRI) |
+missing(AAVEHI) | missing(AAVHS) ) .
+RECODE aainput (0=1) .
+END IF .
+EXECUTE .
+
+RECODE AADEPEN (SYSMIS=-137.08) .
+RECODE AATRAB15 (SYSMIS=-2.71) .
+RECODE AAEDAD (SYSMIS=46.88).
+RECODE AAESC (SYSMIS=23.40) .
+ECODE AABAO (SYSMIS=-1.30) .
+RECODE AAPISO (SYSMIS=-3.64).
+RECODE AADISCAP (SYSMIS=98.94).
+RECODE AALICUA (SYSMIS=89.37) .
+RECODE AAVENT (SYSMIS=79.34) .
+RECODE AARADIO (SYSMIS=95.56).                    124/284
+
+--- Page 125/284 ---
+
+RECODE AAREFRI (SYSMIS=90.49) .
+RECODE AAVEHI (SYSMIS=78.17) .
+RECODE AAVHS (SYSMIS=78.62) .
+
+COMPUTE AAcalif = AADEPEN + AATRAB15 + AAEDAD + AAESC + AABAO + AAPISO +
+     AADISCAP + AALICUA + AAVENT + AARADIO + AAREFRI + AAVEHI + AAVHS .
+EXECUTE .
+
+****Calificación
+
+DISCRIMINANT
+/GROUPS=LP98(0 1)
+/VARIABLES=AAcalif
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS = .42 .58
+/STATISTICS=raw TABLE CROSSVALID
+/CLASSIFY=NONMISSING POOLED .
+
+USE ALL.
+COMPUTE filter_$=(dis_1 = 0).
+VARIABLE LABEL filter_$ 'dis_1 = 0 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+  VARIABLES=AAcalif
+  /FORMAT=NOTABLE
+  /STATISTICS=MINIMUM .
+
+USE ALL.
+COMPUTE filter_$=(dis_1 = 1).
+VARIABLE LABEL filter_$ 'dis_1 = 1 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+  VARIABLES=AAcalif
+  /FORMAT=NOTABLE
+  /STATISTICS= MAXIMUM .
+
+FILTER OFF.
+USE ALL.
+
+EXECUTE .
+
+****Filtro
+
+IF ((TOTPER<=4 & EJ<=24) | (TOTPER<=2 & EJ>=65)) viejitos=-100 .
+RECODE viejitos (SYSMIS=0) .
+
+COMPUTE AACALIF=AACALIF + viejitos .
+
+EXECUTE .
+
+***linea de corte
+
+COMPUTE AApobre = 0 .
+DO IF (AAcalif< 589.37) .
+RECODE AApobre (0=1) .
+END IF .
+
+(VEHI = 0) AAPOBRE = 0 .
+EXECUTE.
+
+FREQUENCIES
+  VARIABLES=LP98 AAPOBRE .
+
+--- Page 126/284 ---
+
+COMPUTE FECHA = 300698 .
+
+COMPUTE FOPO = 3 .
+
+XECUTE.
+
+SAVE OUTFILE='E:\punteo\REG_10\reg10j_3.sav'
+  /COMPRESSED.
+
+AGGREGATE
+  /OUTFILE='E:\punteo\REG_10\AGGR.SAV'
+  /BREAK=entidad mpio local folio
+  /aapobr_1 = MEAN(aapobre).
+
+GET
+  FILE='E:\punteo\REG_10\Aggr.sav'.
+EXECUTE .
+
+RENAME VARIABLES
+    aapobr_1 = aapobre .
+
+FILTER OFF.
+USE ALL.
+SELECT IF(aapobre = 1).
+EXECUTE .
+
+SAVE TRANSLATE OUTFILE='E:\punteo\REG_10\fopo10_3.dbf'
+  /TYPE=DB4 /MAP /REPLA.
+
+
+************************************
+**** RECUPERACION DE POBRES 15-ago-98 *********
+************************************************************
+
+*** Se recuperan con el filtro de indispensabe
+
+IF (piso1=1 & aguaba1=1& luz=1) indisp = -100 .
+RECODE indisp (sysmis=0) .
+
+COMPUTE bbCALIF=aaCALIF + indisp .
+EXECUTE .
+
+COMPUTE bbpobre = 0 .
+EXECUTE .
+DO IF (bbcalif< 589.37) .
+RECODE
+  bbpobre (0=1) .
+END IF .
+
+DO IF (vehi = 0 & bbpobre = 1) .
+RECODE
+  bbpobre (1=0) .
+END IF .
+EXECUTE .
+
+IF ( aapobre=0 & bbpobre=1) fapobre = 1 .
+RECODE fapobre (sysmis=0) .
+EXECUTE .
+
+
+************************************
+******** Se incrementa la linea de corte *******
+
+COMPUTE ccpobre = 0 .
+EXECUTE .
+DO IF (bbcalif< 648.6) .
+RECODE
+
+--- Page 127/284 ---
+
+  ccpobre (0=1) .
+END IF .
+
+DO IF (vehi = 0 & ccpobre = 1) .
+RECODE
+  ccpobre (1=0) .
+END IF .
+EXECUTE .
+
+IF (aapobre=0 & fapobre=0 & ccpobre=1) fbpobre = 1 .
+RECODE fbpobre (sysmis=0) .
+EXECUTE .
+
+
+COMPUTE ffpobre = fapobre + fbpobre.
+RECODE ffpobre (sysmis=0).
+
+COMPUTE pobre = aapobre + fapobre + fbpobre .
+recode pobre (sysmis=0) .
+
+FREQUENCIES
+  VARIABLES= pobre .
+
+
+*** El FOPO de los pobres recuperados ******
+
+AGGREGATE
+  /OUTFILE='E:\punteo\REG_27\aggr1.SAV'
+  /BREAK=entidad mpio local folio
+  /pobre_1 = MEAN(ffpobre).
+
+GET
+  FILE='E:\punteo\REG_27\Aggr1.sav'.
+XECUTE .
+
+RENAME VARIABLES
+    pobre_1 = ffpobre .
+
+FILTER OFF.
+USE ALL.
+SELECT IF(ffpobre = 1).
+EXECUTE .
+
+SAVE TRANSLATE OUTFILE='E:\punteo\REG_27\fopo27_3e.dbf'
+  /TYPE=DB4 /MAP /REPLA
+
+--- Page 128/284 ---
+

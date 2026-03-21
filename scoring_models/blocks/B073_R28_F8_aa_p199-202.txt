@@ -1,0 +1,246 @@
+--- Page 199/284 ---
+
+REGIÓN 28. ALTIPLANO
+FASE 8
+MODELO aa
+
+DISCRIMINANT
+/GROUPS=lp98(0 1)
+/VARIABLES= hacina depen ninos ocupj_1 piso_1 mu15a49 trab151 hectie1 agua_1
+vhs refri vehi lava radio estgas discap
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS = .42 .58
+/STATISTICS=raw TABLE CROSSVALID
+/CLASSIFY=NONMISSING POOLED .
+
+IF (PERCEP = 0) DEPEN = 99 .
+RECODE DEPEN (99 = SYSMIS) .
+
+COMPUTE aaHACINA = -5*HACINA .
+COMPUTE aaDEPEN = -32*DEPEN .
+COMPUTE aaNINOS = -28*NINOS .
+COMPUTE aaOCUPJ = -24*OCUPJ_1 .
+COMPUTE aaPISO = 11*PISO_1 .
+COMPUTE aaMU15A = -11*MU15A49 .
+COMPUTE aaTRAB = -33*TRAB151 .
+COMPUTE aaHECTIE = 3*HECTIE1 .
+COMPUTE aaAGUA = 6*AGUA_1 .
+
+IF (VHS = 0) aaVHS = 100 .
+IF (VHS = 1) aaVHS = 62 .
+
+IF (REFRI = 0) aaREFRI = 100 .
+IF (REFRI = 1) aaREFRI = 88 .
+
+F (VEHI = 0) aaVEHI = 100 .
+IF (VEHI = 1) aaVEHI = 81 .
+
+IF (LAVA = 0) aaLAVA = 100 .
+IF (LAVA = 1) aaLAVA = 75 .
+
+IF (RADIO = 0) aaRADIO = 100 .
+IF (RADIO = 1) aaRADIO = 88 .
+
+IF (ESTGAS = 0) aaESTGAS= 100 .
+IF (ESTGAS = 1) aaESTGAS = 87
+
+IF (DISCAP = 0) aaDISCAP = 100 .
+IF (DISCAP = 1) aaDISCAP = 72
+
+EXECUTE.
+
+FREQUENCIES
+VARIABLES= aahacina aadepen aaninos aaocupj aapiso aamu15a aatrab aahectie aaagua
+aavhs aarefri aavehi aalava aaradio aaestgas aadiscap
+/FORMAT=NOTABLE
+/STATISTICS=MEAN .
+
+COMPUTE aainput = 0 .
+EXECUTE .
+DO IF (MISSING(aahacina) | MISSING(aadepen) | MISSING(aaninos) | MISSING(aaocupj) | MISSING(aapiso)
+| MISSING(aamu15a) | MISSING(aatrab) | MISSING (aahectie) | MISSING (aaagua)
+| MISSING(aavhs) | MISSING(aarefri) | MISSING(aavehi) | MISSING(aalava)
+| MISSING(aaradio) | MISSING(aaestgas) | MISSING(aadiscap)) .
+RECODE
+aainput (0=1) .
+ND IF .
+EXECUTE .
+
+RECODE aahacina (SYSMIS = -13.7644) .
+RECODE aadepen (SYSMIS = -72.6155) .
+RECODE aaninos (SYSMIS = -45.2907) .
+
+--- Page 200/284 ---
+
+RECODE aaocupj (SYSMIS = -0.07400).
+RECODE aapiso (SYSMIS = 0.03365) .
+RECODE aamu15a (SYSMIS = -12.6689) .
+RECODE aatrab (SYSMIS = -1.2912) .
+RECODE aahectie (SYSMIS = 13.4777) .
+ECODE aaagua (SYSMIS = -0.0369) .
+RECODE aavhs (SYSMIS = 64.3574) .
+RECODE aarefri (SYSMIS = 90.4985) .
+RECODE aavehi (SYSMIS = 85.2814) .
+RECODE aalava (SYSMIS = 77.9967) .
+RECODE aaradio (SYSMIS = 96.4030) .
+RECODE aaestgas (SYSMIS = 94.2435) .
+RECODE aadiscap (SYSMIS = 98.2055) .
+
+COMPUTE aacalif = aahacina + aadepen + aaninos + aaocupj + aapiso + aamu15a + aatrab + aahectie + aaagua
++ aavhs + aarefri + aavehi + aalava + aaradio + aaestgas + aadiscap .
+EXECUTE .
+
+DISCRIMINANT
+/GROUPS=LP98(0 1)
+/VARIABLES=aacalif
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS .42 .58
+/STATISTICS=raw TABLE crossvalid
+/CLASSIFY=NONMISSING POOLED .
+
+USE ALL.
+COMPUTE filter_$=(dis_1 = 0).
+VARIABLE LABEL filter_$ 'dis_1 = 0 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+tEQUENCIES
+VARIABLES=aacalif
+/FORMAT=NOTABLE
+/STATISTICS=MINIMUM .
+
+USE ALL.
+COMPUTE filter_$=(dis_1 = 1).
+VARIABLE LABEL filter_$ 'dis_1 = 1 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+VARIABLES=aacalif
+/FORMAT=NOTABLE
+/STATISTICS= MAXIMUM .
+
+FILTER OFF.
+USE ALL.
+EXECUTE .
+
+COMPUTE VIEJITOS = 0 .
+IF ((ej < 25 & TOTPER < 5) | (ej > 65 & ej < 98 & TOTPER < 3)) VIEJITOS = -100 .
+RECODE viejitos (SYSMIS=0) .
+EXECUTE.
+
+COMPUTE aacalif=aacalif + viejitos .
+execute .
+
+rOMPUTE aapobre = 0 .
+) IF (aacalif < 588.07) .
+nECODE
+aapobre (0=1) .
+END IF .
+EXECUTE .
+
+--- Page 201/284 ---
+
+DO IF (vehi = 0 & aapobre = 1) .
+RECODE
+  aapobre (1=0) .
+END IF .
+EXECUTE .
+
+c (SEG_SOC > 0 & SEG_SOC < 6) SEGURO = 1 .
+IF (FAM_ENTR >= 1 & FAM_ENTR <= 7) FAM_BIEN = 1 .
+IF ((SEGURO = 1 | FAM_BIEN = 1) & AAPOBRE = 1) ELIMIN = 1 .
+RECODE SEGURO FAM_BIEN ELIMIN (SYSMIS = 0) .
+IF (ELIMIN = 1) AAPOBRE = 0 .
+EXECUTE .
+
+FREQUENCIES
+  VARIABLES= aapobre lp98 .
+
+--- Page 202/284 ---
+
+*******************************************
+*********puntajes región 32**************
+*******************************************
+
+***Modelo AA
+
+SCRIMINANT
+GROUPS=LP98(0 1)
+/VARIABLES= depen ninos  trab151 ocupj_1 esc discap
+ piso_1 aguaba_1 pared_1  hectie1 radio estgas vhs vehi lava
+cal_agua tocadisc ventila
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS = .42 .58
+/STATISTICS=raw TABLE CROSSVALID
+/CLASSIFY=NONMISSING POOLED .
+
+***Calificación
+
+COMPUTE AADEPEN=.52*DEPEN .
+COMPUTE AANINOS=.18*NINOS .
+COMPUTE AATRAB15 = .75 * TRAB151 .
+COMPUTE AAOCUPJ = 8 * OCUPJ_1 .
+COMPUTE AAESC = 3 * ESC .
+COMPUTE AAPISO = 2 * PISO1.
+COMPUTE AAAGUABA = 3*AGUABA_1 .
+COMPUTE AAPARED = .13 * PARED1.
+COMPUTE AAHECTI = 1 * HECTIE1 .
+
+IF (DISCAP = 0) AADISCAP = 100 .
+IF (DISCAP = 1) AADISCAP = 78 .
+
+IF (RADIO = 0) AARADIO = 100 .
+IF (RADIO = 1) AARADIO = 93 .
+
+IF (ESTGAS = 0) AAESTGAS = 100.
+IF (ESTGAS = 1) AAESTGAS = 81 .
+
+IF (VHS = 0) AAVHS = 100 .
+IF (VHS = 0) AAVHS = 80 .
+
+IF (VEHI=0) AAVEHI= 100 .
+IF (VEHI=1) AAVEHI= 78 .
+
+IF (LAVA = 0) AALAVA = 100 .
+IF (LAVA = 1) AALAVA = 83 .
+
+IF (CAL_AGUA = 0) AACAL_AG = 100 .
+IF (CAL_AGUA = 1) AACAL_AG = 90 .
+
+IF (TOCADISC = 0) AATOCADI = 100 .
+IF (TOCADISC = 1) AATOCADI = 83 .
+
+IF (VENTILA = 0) AAVENTI = 100 .
+IF (VENTILA = 1) AAVENTI = 85 .
+
+EXECUTE .
+
+***calcular las medias de las variables para imputar a valores perdidos
+
+FREQUENCIES
+  VARIABLES= aadepen aaninos aatrab15 aaocupj aaesc aapiso aaaguaba aapared aahecti aadiscap
+             aaradio aaestgas aavhs aavehi aalava aacal_ag aatocadi aaventi
+  /FORMAT=NOTABLE
+  /STATISTICS=MEAN .
+
+COMPUTE ainput = 0 .
+EXECUTE .
+DO IF (MISSING(aadepen) | MISSING(aaninos) | MISSING(aatrab15) | MISSING(aaocupj) | MISSING(aaesc)
+| MISSING(aapiso) | MISSING(aaaguaba) | MISSING(aapared) | MISSING(aahecti) | MISSING(aadiscap) | MISSING(aaradio)
+| MISSING(aaestgas) | MISSING(aavhs) | MISSING(aavehi) | MISSING (aalava) | MISSING(aacal_ag) | MISSING (aatocadi)
+| MISSING(aaventi) ) .
+CODE
+  ainput (0=1) .
+END IF .
+EXECUTE .
+
+***se recodifican los valores perdidos con las medias de las variables
+

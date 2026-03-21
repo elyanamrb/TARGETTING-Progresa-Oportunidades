@@ -1,0 +1,130 @@
+REGIÓN 12. HUASTECA
+FASE 3
+MODELO aa
+
+DISCRIMINANT
+/GROUPS=lp98(0 1)
+/VARIABLES=depen ninos trab151 hacina esc discap radio tv estgas ventila hectie1
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS .42 .58
+/STATISTICS=RAW TABLE CROSSVALID
+/CLASSIFY=NONMISSING POOLED .
+
+COMPUTE AADEPEN=-.42*DEPEN .
+COMPUTE AANINOS=-.3*NINOS .
+COMPUTE AATRAB15 = -124*TRAB151 .
+COMPUTE AAHACINA = .6*HACINA .
+COMPUTE AAESC = 8*ESC .
+COMPUTE AAHECTIE = 2*HECTIE1
+
+IF (DISCAP = 0) AADISCAP = 100 .
+IF (DISCAP = 1) AADISCAP = 79 .
+
+IF (RADIO = 0) AARADIO = 100 .
+IF (RADIO = 1) AARADIO = 96 .
+
+IF (TV = 0) AATV = 100 .
+IF (TV = 1) AATV = 67 .
+
+IF (ESTGAS=0) AAESTGAS= 100 .
+IF (ESTGAS=1) AAESTGAS= 84 .
+
+IF (VENTILA= 0) AAVENTIL= 100 .
+IF (VENTILA= 1) AAVENTIL= 56 .
+
+EXECUTE.
+
+FREQUENCIES
+ VARIABLES= aadepen aaninos aatrab15 aahacina aaesc aahectie aadiscap aaradio aatv aaestgas aaventil
+ /FORMAT=NOTABLE
+ /STATISTICS=MEAN .
+
+COMPUTE aainput = 0 .
+EXECUTE .
+DO IF (MISSING(aadepen) | MISSING(aaninos) | MISSING (aatrab15) | MISSING(aahacina) | MISSING(aaesc)
+     | MISSING(aahectie) | MISSING(aadiscap) | MISSING(aaradio) | MISSING(aatv) | MISSING(aaestgas) | MISSING(aaventil)) .
+RECODE
+ aainput (0=1) .
+END IF .
+EXECUTE .
+
+RECODE aadepen (SYSMIS = -92.0369) .
+RECODE aaninos (SYSMIS = -4.7133) .
+RECODE aatrab15 (SYSMIS = -2.6451) .
+RECODE aahacina (SYSMIS = -18.8364) .
+RECODE aaesc (SYSMIS = 28.6415) .
+RECODE aahectie (SYSMIS = 5.8139) .
+RECODE aadiscap (SYSMIS = 98.9357) .
+RECODE aaradio (SYSMIS = 98.7818) .
+RECODE aatv (SYSMIS = 86.6798) .
+RECODE aaestgas (SYSMIS = 91.5273) .
+RECODE aaventil (SYSMIS = 72.6082) .
+
+COMPUTE aacalif = aadepen + aaninos + aatrab15 + aahacina + aaesc
+                + aahectie + aadiscap + aaradio + aatv + aaestgas + aaventil.
+EXECUTE .
+
+DISCRIMINANT
+/GROUPS=LP98(0 1)
+/VARIABLES=aacalif
+
+--- Page 148/284 ---
+
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS = .42 .58
+/STATISTICS=raw TABLE CROSSVALID
+/CLASSIFY=NONMISSING POOLED .
+
+USE ALL.
+COMPUTE filter_$=(dis_2 = 0).
+VARIABLE LABEL filter_$ 'dis_2 = 0 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+ VARIABLES=AAcalif /FORMAT=NOTABLE
+ /STATISTICS=MINIMUM .
+
+USE ALL.
+COMPUTE filter_$=(dis_2= 1).
+VARIABLE LABEL filter_$ 'dis_2 = 1 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+ VARIABLES=AAcalif /FORMAT=NOTABLE
+ /STATISTICS= MAXIMUM .
+
+FILTER OFF.
+USE ALL.
+EXECUTE .
+
+IF ((EJ<= 24 & totper <= 4) | (EJ >= 65 & totper <= 2)) viejitos = -100.
+RECODE viejitos (SYSMIS = 0) .
+IF (BAO1 = 1 & AGUA1 = 1 & PISO1 = 1) INDISPEN = - 100 .
+IF (RADIO = 1 & ESTGAS = 1 & LICUA = 1) COCINA = - 100 .
+RECODE INDISPEN COCINA (SYSMIS = 0) .
+EXECUTE .
+
+COMPUTE aacalif1 = aacalif + viejitos + indispen + cocina .
+EXECUTE .
+
+COMPUTE AApobre = 0 .
+EXECUTE .
+DO IF (AAcalif1 < 400.5) .
+RECODE
+AApobre (0=1) .
+END IF .
+EXECUTE .
+
+FREQUENCIES
+ VARIABLES=lp98 aapobre .
+
+--- Page 149/284 ---
+

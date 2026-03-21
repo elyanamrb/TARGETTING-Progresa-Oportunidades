@@ -1,0 +1,82 @@
+REGION 47
+*/*/ FASE 4 A 6
+*/*/ MODELO AA
+
+IF (seg_soc <= 1 & seg_soc <= 5) seg_soc1 = 0 .
+EXECUTE .
+RECODE
+  seg_soc1 (SYSMIS=1) .
+EXECUTE .
+
+FREQUENCIES
+  VARIABLES=depen trab151 seg_soc1 ninos vehi
+  /FORMAT=NOTABLE
+  /STATISTICS=MEAN .
+
+DISCRIMINANT
+  /GROUPS=lp98(0 1)
+  /VARIABLES=depen trab151 seg_soc1 ninos vehi
+  /ANALYSIS ALL
+  /PRIORS EQUAL
+  /STATISTICS=raw TABLE CROSSVALID
+  /CLASSIFY=NONMISSING POOLED .
+
+COMPUTE aadepen = -32*DEPEN .
+COMPUTE aatrab15 = -249*TRAB151 .
+COMPUTE aaninos = -29*NINOS .
+
+IF (seg_soc1 = 0) aasegsoc = 100 .
+IF (seg_soc1 = 1) aasegsoc = 52.38 .
+
+IF (vehi = 0) aavehi = 100 .
+IF (vehi = 1) aavehi = 50.15 .
+
+FREQUENCIES
+  VARIABLES= AADEPEN AATRAB15 AANINOS AASEGSOC AAVEHI
+  /FORMAT=NOTABLE
+  /STATISTICS=MEAN .
+
+COMPUTE input = 0 .
+EXECUTE .
+DO IF ( MISSING(AADEPEN) | MISSING(AATRAB15) | MISSING(AANINOS) |
+  missing(AASEGSOC) | missing(AAVEHI)) .
+RECODE
+  input (0=1) .
+END IF .
+EXECUTE .
+
+*********************************************************
+
+RECODE AADEPEN (SYSMIS=-62.27) .
+RECODE AATRAB15 (SYSMIS=-9.29) .
+RECODE AANINOS (SYSMIS=-35.64) .
+RECODE AASEGSOC (SYSMIS=68.25) .
+RECODE AAVEHI (SYSMIS=71.96) .
+
+COMPUTE AAcalif = AADEPEN + AATRAB15 + AANINOS + AASEGSOC + AAVEHI .
+EXECUTE .
+
+DISCRIMINANT
+  /GROUPS=LP98(0 1)
+  /VARIABLES=AAcalif
+  /ANALYSIS ALL
+  /SAVE=CLASS
+  /PRIORS EQUAL
+  /STATISTICS=raw TABLE CROSSVALID
+  /CLASSIFY=NONMISSING POOLED .
+
+USE ALL.
+COMPUTE filter_$=(dis_1 = 0).
+VARIABLE LABEL filter_$ 'dis_1 = 0 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+VARIABLES=AAcalif
+/FORMAT=NOTABLE
+/STATISTICS=MINIMUM .
+
+USE ALL.
+

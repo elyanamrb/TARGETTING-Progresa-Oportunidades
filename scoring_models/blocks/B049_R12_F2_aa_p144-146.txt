@@ -1,0 +1,146 @@
+--- Page 144/284 ---
+
+REGIÓN 12. HUASTECA
+FASE 2
+MODELO aa
+
+OMPUTE AADEPEN=-42*DEPEN .
+COMPUTE AANINOS=-3*NINOS .
+COMPUTE AATRAB15 = -124*TRAB151 .
+COMPUTE AAHACINA = -6*HACINA .
+COMPUTE AAESC = 8*ESC .
+COMPUTE AAHECTTE = 2*HECTTE1
+
+IF (DISCAP = 0) AADISCAP = 100 .
+IF (DISCAP = 1) AADISCAP = 79 .
+
+IF (RADIO = 0) AARADIO = 100 .
+IF (RADIO = 1) AARADIO = 96 .
+
+IF (TV = 0) AATV = 100 .
+IF (TV = 1) AATV = 67 .
+
+IF (ESTGAS=0) AAESTGAS= 100 .
+IF (ESTGAS=1) AAESTGAS= 84 .
+
+IF (P65_10=0) AAVENTIL= 100 .
+IF (P65_10=1) AAVENTIL= 56 .
+
+EXECUTE.
+
+FREQUENCIES
+  VARIABLES= aadepen aaninos aatrab15 aahacina aaesc aahectte
+             aadiscap aaradio aatv aaestgas aaventil
+  /FORMAT=NOTABLE
+  /STATISTICS=MEAN .
+
+OMPUTE aainput = 0 .
+EXECUTE .
+DO IF (MISSING(aadepen) | MISSING(aaninos) | MISSING (aatrab15) | MISSING(aahacina) | MISSING(aaesc)
+      | MISSING(aahectte) | MISSING(aadiscap) | MISSING(aaradio) | MISSING(aatv) | MISSING(aaestgas) | MISSING(aaventil)) .
+RECODE
+   aainput (0=1) .
+END IF .
+EXECUTE .
+
+RECODE aadepen (SYSMIS=-114.5239) .
+RECODE aaninos (SYSMIS=-5.4708) .
+RECODE aatrab15 (SYSMIS=-7.6870) .
+RECODE aahacina (SYSMIS=-19.0873) .
+RECODE aaesc (SYSMIS= 28.5526) .
+RECODE aahectte (SYSMIS= 8.1953) .
+RECODE aadiscap (SYSMIS= 98.2976) .
+RECODE aaradio (SYSMIS=98.6826) .
+RECODE aatv (SYSMIS=86.5021) .
+RECODE aaestgas (SYSMIS= 90.9751) .
+RECODE aaventil (SYSMIS= 63.5799) .
+
+COMPUTE aacalif = aadepen + aaninos + aatrab15 + aahacina + aaesc + aahectte + aadiscap + aaradio
+                + aatv + aaestgas + aaventil.
+EXECUTE .
+
+DISCRIMINANT
+  /GROUPS=lpnva(0 1)
+  /VARIABLES=depen ninos trab151 hacina esc discap radio tv
+             estgas p65_10 hectte1
+  /ANALYSIS ALL
+  /SAVE=CLASS
+  /PRIORS .42 .58
+  /STATISTICS=RAW TABLE
+  /CLASSIFY=NONMISSING POOLED .
+
+DISCRIMINANT
+
+144/284
+
+--- Page 145/284 ---
+
+/GROUPS=LPNVA(0 1)
+/VARIABLES=aacalif
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS = .42 .58
+/STATISTICS=raw TABLE
+/CLASSIFY=NONMISSING POOLED .
+
+USE ALL.
+COMPUTE filter_$=(dis_4 = 0).
+VARIABLE LABEL filter_$ 'dis_4 = 0 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+ VARIABLES=aacalif
+ /FORMAT=NOTABLE
+ /STATISTICS=MINIMUM .
+
+USE ALL.
+COMPUTE filter_$=(dis_4 = 1).
+VARIABLE LABEL filter_$ 'dis_4 = 1 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+ VARIABLES=aacalif
+ /FORMAT=NOTABLE
+ /STATISTICS= MAXIMUM .
+
+FILTER OFF.
+USE ALL.
+EXECUTE .
+
+IF ( (ej<25 & TOTPERS <5) | (ej>64 & totpers<3) ) viejitos=-100 .
+RECODE viejitos (SYSMIS=0) .
+
+COMPUTE aaCALIF1=aaCALIF + viejitos .
+EXECUTE .
+
+COMPUTE aapobre = 0 .
+EXECUTE .
+DO IF (aacalif1 < 383.75) .
+RECODE
+ zzpobre (0=1) .
+END IF .
+EXECUTE .
+
+DO IF (vehi = 0 & aapobre = 1) .
+RECODE
+ aapobre (1=0) .
+END IF .
+EXECUTE .
+
+FREQUENCIES
+ VARIABLES=lpnva pobre aapobre .
+
+--- Page 146/284 ---
+
+REGIÓN 12. HUASTECA
+FASE 2
+Modelo aa
+
+No aplica el modelo para 13 hogares.
+

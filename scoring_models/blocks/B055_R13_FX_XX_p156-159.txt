@@ -1,0 +1,178 @@
+--- Page 156/284 ---
+
+Región 13. Mixteca - Costa - Chatina
+Fase 3
+
+***discriminante con modelo nuevo
+
+DISCRIMINANT
+/GROUPS=lp98(0 1)
+/VARIABLES= depen ninos ocupj_1 esc piso_1 ej aguaba_1 trab151 noasi1 pared_1
+refri vehi estgas tv
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS .42 .58
+/STATISTICS=RAW TABLE
+/CLASSIFY=NONMISSING POOLED .
+
+***puntajes región 13
+
+COMPUTE AADEPEN = -31*DEPEN .
+COMPUTE AANINOS = -17*NINOS .
+COMPUTE AAOCUPJ = -35*OCUPJ_1 .
+COMPUTE AAESC = 4*ESC .
+COMPUTE AAPISO = 11*PISO_1 .
+COMPUTE AAEDAD = 1*EJ .
+COMPUTE AAAGUABA = 13*AGUABA_1 .
+COMPUTE AATRAB = -31*TRAB151 .
+COMPUTE AANOASI = -26*NOASI1 .
+COMPUTE AAPARED = 11* PARED_1 .
+
+IF (REFRI = 0) AAREFRI = 100 .
+IF (REFRI = 1) AAREFRI = 76 .
+
+IF (VEHI = 0) AAVEHI = 100 .
+IF (VEHI = 1) AAVEHI = 55 .
+
+IF (ESTGAS = 0) AAESTGAS = 100 .
+IF (ESTGAS = 1) AAESTGAS = 76 .
+
+IF (TV = 0) AATV = 100 .
+IF (TV = 1) AATV = 76 .
+
+EXECUTE.
+
+***calcular las medias de las variables para imputar a valores perdidos
+
+FREQUENCIES
+  VARIABLES= aadepen aaninos aaocupj aaesc aapiso aaedad aaaguaba aatrab aanoasi aapared
+  aarefri aavehi aaestgas aatv
+  /FORMAT=NOTABLE
+  /STATISTICS=MEAN .
+
+COMPUTE aainput = 0 .
+EXECUTE .
+DO IF (MISSING(aadepen) | MISSING(aaninos) | MISSING (aaocupj)| MISSING (aaesc)| MISSING (aapiso)
+  | MISSING(aaedad) | MISSING(aaaguaba) | MISSING (aatrab) | MISSING(aanoasi) | MISSING (aapared)
+  | MISSING(aarefri) | MISSING (aavehi)| MISSING(aaestgas) |MISSING(aatv)) .
+RECODE
+  aainput (0=1) .
+END IF .
+EXECUTE
+
+***se recodifican los valores perdidos con las medias de las variables
+
+RECODE aadepen (SYSMIS = -116.2500) .
+RECODE aaninos (SYSMIS = -40.0714) .
+RECODE aaocupj (SYSMIS = -3.2750) .
+RECODE aaesc (SYSMIS = 4.5714) .
+RECODE aapiso (SYSMIS = -5.8850) .
+RECODE aaedad (SYSMIS = 47.2857) .
+RECODE aaaguaba (SYSMIS = 15.5800) .            156/284
+
+--- Page 157/284 ---
+
+RECODE aatrab (SYSMIS = -9.7798) .
+RECODE aanoasi (SYSMIS = -7.8929) .
+RECODE aapared (SYSMIS = -1.9957) .
+RECODE aarefri (SYSMIS = 76.0000) .
+RECODE aavehi (SYSMIS = 55.0000) .
+RECODE aaestgas (SYSMIS = 76.0000) .
+RECODE aatv (SYSMIS = 76.0000) .
+
+***se hace la calificación
+
+COMPUTE aacalif = aadepen + aaninos + aaocupj + aaesc + aapiso + aaedad +
+aaaguaba + aatrab + aanoasi + aapared + aarefri + aavehi + aaestgas + aatv .
+EXECUTE .
+
+***discriminante con la linea de pobreza
+
+DISCRIMINANT
+/GROUPS=LP98(0 1)
+/VARIABLES=aacalif
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS .42 .58
+/STATISTICS=raw TABLE crossvalid
+/CLASSIFY=NONMISSING POOLED .
+
+USE ALL.
+COMPUTE filter_$=(dis_2 = 0).
+VARIABLE LABEL filter_$ 'dis_2 = 0 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+VARIABLES=aacalif
+/FORMAT=NOTABLE
+/STATISTICS=MINIMUM .
+
+USE ALL.
+COMPUTE filter_$=(dis_2 = 1).
+VARIABLE LABEL filter_$ 'dis_2 = 1 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+VARIABLES=aacalif
+/FORMAT=NOTABLE
+/STATISTICS= MAXIMUM .
+
+FILTER OFF.
+USE ALL.
+EXECUTE .
+
+***se determina la linea de corte y se obtienen los pobres
+
+IF ((EJ<= 24 & totper <= 4) | (EJ >= 65 & totper <= 2)) viejitos = -100.
+recode viejitos (SYSMIS = 0) .
+EXECUTE .
+
+COMPUTE aacalif1 = aacalif + viejitos .
+EXECUTE .
+
+COMPUTE aapobre = 0 .
+EXECUTE .
+DO IF (aacalif1< 291.03) .
+RECODE                                                    157/284
+
+--- Page 158/284 ---
+
+aapobre (0=1) .
+END IF .
+EXECUTE .
+
+***** Recodificación por vehículo
+
+DO IF (vehi = 0 & aapobre = 1) .
+RECODE
+aapobre (1=0) .
+END IF .
+EXECUTE .
+
+
+FREQUENCIES
+VARIABLES=lp98 aapobre .
+
+
+
+                                                          158/284
+
+--- Page 159/284 ---
+
+Región 13 Fase 3
+
+En esta fase la región 13 contenía localidades del estado de Puebla y de Oaxaca,
+posteriormente, se separó la parte correspondiente al estado de Puebla formándose
+la región 44.
+
+Los totales presentados corresponden únicamente a lo analizado en el estado de
+Oaxaca.
+
+                                                          159/284
+

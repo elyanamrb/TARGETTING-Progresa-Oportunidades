@@ -1,0 +1,319 @@
+--- Page 242/284 ---
+
+Región 40. Centro - Sierra - Chotalapan - Costa
+Fase 3
+
+***puntajes región 40
+
+**método de STEPWISE
+
+FREQUENCIES
+ VARIABLES=hacina depen ninos noasi1 trab151 ocupj_1 ej esc lengua discap
+ piso_1 bao_1 agua_1 aguaba_1 pared_1 luz hectie1 radio estgas tv vhs refri vehi lava licua
+ cal_agua tocadisc ventila
+/FORMAT=NOTABLE
+/STATISTICS=MEAN .
+
+DISCRIMINANT
+ /GROUPS=lp98(0 1)
+ /VARIABLES=hacina depen ninos noasi1 trab151 ocupj_1 ej esc lengua discap
+ piso_1 bao_1 agua_1 aguaba_1 pared_1 luz hectie1 radio estgas tv vhs refri vehi lava licua
+ cal_agua tocadisc ventila
+ /ANALYSIS ALL
+ /SAVE=CLASS
+ /METHOD=WILKS
+ /FIN= 3.84
+ /FOUT= 2.71
+ /PRIORS .42 .58
+ /HISTORY
+ /STATISTICS=BOXM RAW TABLE
+ /CLASSIFY=NONMISSING POOLED .
+
+REGRESSION
+ /MISSING LISTWISE
+ /STATISTICS COEFF OUTS R ANOVA
+ /CRITERIA=PIN(.05) POUT(.10)
+ /NOORIGIN
+ /DEPENDENT lp98
+ /METHOD=ENTER hacina depen ninos noasi1 trab151 ocupj_1 ej esc lengua discap
+ piso_1 bao_1 agua_1 aguaba_1 pared_1 luz hectie1 radio estgas tv vhs refri vehi lava licua
+ cal_agua tocadisc ventila
+ /SAVE PRED .
+
+***Modelo
+
+DISCRIMINANT
+ /GROUPS=LP98(0 1)
+ /VARIABLES= depen ninos noasi1 esc
+ agua_1 estgas vhs refri vehi lava discap
+ /ANALYSIS ALL
+ /SAVE=CLASS
+ /PRIORS = .42 .58
+ /STATISTICS=raw TABLE CROSSVALID
+ /CLASSIFY=NONMISSING POOLED .
+
+***Calificación
+
+COMPUTE AADEPEN=-25*DEPEN .
+COMPUTE AANINOS=-26*NINOS .
+COMPUTE AANOASI=-33*NOASI1 .
+COMPUTE AAESC=8*ESC .
+COMPUTE AAAGUA=12*AGUA_1 .
+
+IF (DISCAP=0) AADISCAP = 100 .
+ (DISCAP=1) AADISCAP = 86 .
+
+IF (ESTGAS=0) AAESTGAS = 100 .
+IF (ESTGAS=1) AAESTGAS = 63 .
+
+IF (VHS=0) AAVHS= 100 .
+
+--- Page 243/284 ---
+
+IF (VHS=1) AAVHS= 56 .
+
+IF (REFRI=0) AAREFRI= 100 .
+IF (REFRI=1) AAREFRI= 79 .
+
+` (VEHI=0) AAVEHI= 100 .
+.; (VEHI=1) AAVEHI= 66 .
+
+IF (LAVA = 0) AALAVA = 100 .
+IF (LAVA = 1) AALAVA = 67 .
+
+EXECUTE .
+
+***calcular las medias de las variables para imputar a valores perdidos
+
+FREQUENCIES
+ VARIABLES= aadepen aaninos aanoasi aaesc
+ aaagua aadiscap aaestgas aavhs aarefri aavehi aalava
+/FORMAT=NOTABLE
+/STATISTICS=MEAN .
+
+COMPUTE aainput = 0 .
+EXECUTE .
+DO IF (MISSING(aadepen) | MISSING(aaninos) | MISSING(aanoasi) | MISSING(aaesc)
+| MISSING(aaagua) | MISSING(aadiscap) | MISSING(aaestgas) | MISSING(aavhs) | MISSING(aarefri) | MISSING (aavehi) |
+MISSING (aalava)) .
+RECODE
+ aainput (0=1) .
+END IF .
+EXECUTE .
+
+***se recodifican los valores perdidos con las medias de las variables
+
+RECODE aadepen (SYSMIS=-66.74) .
+RECODE aaninos (SYSMIS=-45.17) .
+RECODE aanoasi (SYSMIS=-4.01) .
+RECODE aaesc (SYSMIS=32.58) .
+RECODE aaagua (SYSMIS=-.18) .
+RECODE aadiscap (SYSMIS=99.32) .
+RECODE aaestgas (SYSMIS=73.15) .
+RECODE aavhs (SYSMIS=56.73) .
+RECODE aarefri (SYSMIS=83.96) .
+RECODE aavehi (SYSMIS=66.72) .
+RECODE aalava (SYSMIS=69.07) .
+
+EXECUTE .
+
+***se hace la calificación
+
+COMPUTE aacalif = aadepen + aaninos + aanoasi + aaesc + aaagua + aadiscap
++ aaestgas + aavhs + aarefri + aavehi + aalava .
+
+EXECUTE .
+
+***se calcula la línea de corte y se obtienen los pobres
+
+***discriminante con la línea de pobreza
+
+DISCRIMINANT
+ /GROUPS=LP98(0 1)
+ /VARIABLES=aacalif
+ /ANALYSIS ALL
+ /SAVE=CLASS
+ /PRIORS = .42 .58
+ /STATISTICS=raw TABLE CROSSVALID
+ /CLASSIFY=NONMISSING POOLED .
+
+****se checa el último discriminante (lp98 vs aacalif)
+
+USE ALL.
+
+--- Page 244/284 ---
+
+COMPUTE filter_$=(dis_1 = 0).
+VARIABLE LABEL filter_$ 'dis_1 = 0 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+XECUTE .
+
+FREQUENCIES
+ VARIABLES=aacalif
+/FORMAT=NOTABLE
+/STATISTICS=MINIMUM .
+
+USE ALL.
+COMPUTE filter_$=(dis_1 = 1).
+VARIABLE LABEL filter_$ 'dis_1 = 1 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+ VARIABLES=aacalif
+/FORMAT=NOTABLE
+/STATISTICS= MAXIMUM .
+
+FILTER OFF.
+USE ALL.
+EXECUTE .
+
+***filtros
+
+COMPUTE VIEJITOS = 0 .
+IF ((ej < 25 & TOTPER < 5) | (ej > 65 & ej < 98 & TOTPER < 3)) VIEJITOS = -100 .
+
+ OMPUTE AACALIF = AACALIF + VIEJITOS .
+
+EXECUTE.
+
+***se checa el mínimo y el máximo y se toma el punto intermedio como línea de corte
+
+COMPUTE aapobre = 0 .
+DO IF (aacalif < 412.10) .
+RECODE
+ aapobre (0=1) .
+END IF .
+EXECUTE .
+
+FREQUENCIES
+ VARIABLES=LP98 AAPOBRE .
+
+USE ALL.
+COMPUTE filter_$=(aapobre = 1).
+VARIABLE LABEL filter_$ 'aapobre = 1 (FILTRO)'.
+VALUE LABELS filter_$ 0 'No seleccionado' 1 'Seleccionado'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+ VARIABLES=vehi .
+
+FILTER OFF.
+USE ALL.
+EXECUTE .
+
+O IF (AApobre = 1 & vehi = 0) .
+RECODE
+ AApobre (1=0) .
+END IF .
+EXECUTE .
+
+--- Page 245/284 ---
+
+FREQUENCIES
+VARIABLES=AAPOBRE .
+
+COMPUTE fecha=150798.
+EXECUTE.
+
+SAVE OUTFILE='H:\punteo\REG_40\reg40j_6.sav'
+/COMPRESSED.
+
+***archivo de entrega: fopo#_1.dbf
+
+FILTER OFF.
+USE ALL.
+SELECT IF(aapobre = 1).
+EXECUTE .
+
+SAVE TRANSLATE OUTFILE='H:\punteo\REG_40\fopo40_6.dbf'
+/keep = entidad mpio local folio aapobre
+/TYPE=DB4 /MAP /REPLA.
+
+SAVE TRANSLATE OUTFILE='H:\entregas\980717\fopo40_6.dbf'
+/keep = entidad mpio local folio aapobre
+/TYPE=DB4 /MAP /REPLA.
+
+GET TRANSLATE
+FILE='H:\punteo\REG_40\fopo40_6.dbf'
+/TYPE=DBF /MAP .
+EXECUTE .
+
+--- Page 246/284 ---
+
+Región 40. Centro - Sierra - Chotalpan - Costa
+Fase 8
+
+***puntajes región 40
+
+***Modelo
+
+DISCRIMINANT
+/GROUPS=LP98(0 1)
+/VARIABLES= depen ninos noasi esc
+agua_1 estgas vhs refri vehi lava discap
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS = .42 .58
+/STATISTICS=raw TABLE CROSSVALID
+/CLASSIFY=NONMISSING POOLED .
+
+***Calificación
+
+IF (PERCEP = 0) DEPEN = 99 .
+RECODE DEPEN (99 = SYSMIS) .
+
+COMPUTE AADEPEN=-25*DEPEN .
+COMPUTE AANINOS=-26*NINOS .
+COMPUTE AANOASI=-33*NOASI .
+COMPUTE AAESC=8*ESC .
+COMPUTE AAAGUA=12*AGUA_1 .
+
+IF (DISCAP=0) AADISCAP = 100 .
+IF (DISCAP=1) AADISCAP = 86 .
+
+IF (ESTGAS=0) AAESTGAS = 100 .
+IF (ESTGAS=1) AAESTGAS = 63 .
+
+IF (VHS=0) AAVHS= 100 .
+IF (VHS=1) AAVHS= 56 .
+
+IF (REFRI=0) AAREFRI= 100 .
+IF (REFRI=1) AAREFRI= 79 .
+
+IF (VEHI=0) AAVEHI= 100 .
+IF (VEHI=1) AAVEHI= 66 .
+
+IF (LAVA = 0) AALAVA = 100 .
+IF (LAVA = 1) AALAVA = 67 .
+
+EXECUTE .
+
+***calcular las medias de las variables para imputar a valores perdidos
+
+FREQUENCIES
+VARIABLES= aadepen aaninos aanoasi aaesc
+aaagua aadiscap aaestgas aavhs aarefri aavehi aalava
+/FORMAT=NOTABLE
+/STATISTICS=MEAN .
+
+COMPUTE ainput = 0 .
+EXECUTE .
+DO IF (MISSING(aadepen) | MISSING(aaninos) | MISSING(aanoasi) | MISSING(aaesc)
+| MISSING(aaagua) | MISSING(aadiscap) | MISSING(aaestgas) | MISSING(aavhs) | MISSING(aarefri) | MISSING
+MISSING (aalava)) .
+RECODE
+ainput (0=1) .
+ID IF .
+EXECUTE .
+
+***se recodifican los valores perdidos con las medias de las variables
+
+RECODE aadepen (SYSMIS=-67.62) .                246/284
+

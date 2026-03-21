@@ -1,0 +1,183 @@
+región 40
+
+***Modelo
+
+DISCRIMINANT
+/GROUPS=LP98(0 1)
+/VARIABLES= depen ninos noasi esc
+agua_1 estgas vhs refri vehi lava discap
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS = .42 .58
+/STATISTICS=raw TABLE CROSSVALID
+/CLASSIFY=NONMISSING POOLED .
+
+***Calificación
+
+IF (PERCEP = 0) DEPEN = 99 .
+RECODE DEPEN (99 = SYSMIS) .
+
+COMPUTE AADEPEN=-25*DEPEN .
+COMPUTE AANINOS=-26*NINOS .
+COMPUTE AANOASI=-33*NOASI .
+COMPUTE AAESC=8*ESC .
+COMPUTE AAAGUA=12*AGUA_1 .
+
+IF (DISCAP=0) AADISCAP = 100 .
+IF (DISCAP=1) AADISCAP = 86 .
+
+IF (ESTGAS=0) AAESTGAS = 100 .
+IF (ESTGAS=1) AAESTGAS = 63 .
+
+IF (VHS=0) AAVHS= 100 .
+IF (VHS=1) AAVHS= 56 .
+
+IF (REFRI=0) AAREFRI= 100 .
+IF (REFRI=1) AAREFRI= 79 .
+
+IF (VEHI=0) AAVEHI= 100 .
+IF (VEHI=1) AAVEHI= 66 .
+
+IF (LAVA = 0) AALAVA = 100 .
+IF (LAVA = 1) AALAVA = 67 .
+
+EXECUTE .
+
+***calcular las medias de las variables para imputar a valores perdidos
+
+FREQUENCIES
+VARIABLES= aadepen aaninos aanoasi aaesc
+aaagua aadiscap aaestgas aavhs aarefri aavehi aalava
+/FORMAT=NOTABLE
+/STATISTICS=MEAN .
+
+COMPUTE ainput = 0 .
+EXECUTE .
+DO IF (MISSING(aadepen) | MISSING(aaninos) | MISSING(aanoasi) | MISSING(aaesc)
+| MISSING(aaagua) | MISSING(aadiscap) | MISSING(aaestgas) | MISSING(aavhs) | MISSING(aarefri) | MISSING
+MISSING (aalava)) .
+RECODE
+ainput (0=1) .
+ID IF .
+EXECUTE .
+
+***se recodifican los valores perdidos con las medias de las variables
+
+RECODE aadepen (SYSMIS=-67.62) .                246/284
+
+--- Page 247/284 ---
+
+RECODE aaninos (SYSMIS=-46.60) .
+RECODE aanoasi (SYSMIS=-4.50) .
+RECODE aaesc (SYSMIS=31.67) .
+RECODE aaagua (SYSMIS=-.60) .
+RECODE aadiscap (SYSMIS=99.30) .
+RECODE aaestgas (SYSMIS=73.71) .
+RECODE aavhs (SYSMIS=56.83) .
+RECODE aarefri (SYSMIS=83.98) .
+RECODE aavehi (SYSMIS=66.87) .
+RECODE aalava (SYSMIS=69.20) .
+
+EXECUTE .
+
+***se hace la calificación
+
+COMPUTE aacalif = aadepen + aaninos + aanoasi + aaesc + aaagua + aadiscap
++ aaestgas + aavhs + aarefri + aavehi + aalava .
+
+EXECUTE .
+
+***se checa el mínimo y el máximo y se toma el punto intermedio como línea de corte
+
+DISCRIMINANT
+/GROUPS=LP98(0 1)
+/VARIABLES=aacalif
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS = .42 .58
+/STATISTICS=raw TABLE CROSSVALID
+/CLASSIFY=NONMISSING POOLED .
+
+USE ALL.
+COMPUTE filter_$=(dis_1 = 0).
+VARIABLE LABEL filter_$ 'dis_1 = 0 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+VARIABLES=aacalif
+/FORMAT=NOTABLE
+/STATISTICS=MINIMUM .
+
+USE ALL.
+COMPUTE filter_$=(dis_1 = 1).
+VARIABLE LABEL filter_$ 'dis_1 = 1 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+VARIABLES=aacalif
+/FORMAT=NOTABLE
+/STATISTICS= MAXIMUM .
+
+FILTER OFF.
+USE ALL.
+EXECUTE .
+
+***filtros
+
+COMPUTE VIEJITOS = 0 .
+IF ((ej < 25 & TOTPER < 5) | (ej > 65 & ej < 98 & TOTPER < 3)) VIEJITOS = -100 .
+
+COMPUTE AACALIF = AACALIF + VIEJITOS .
+
+EXECUTE.
+
+247/284
+
+--- Page 248/284 ---
+
+COMPUTE aapobre = 0 .
+DO IF (aacalif < 437.5) .
+RECODE
+aapobre (0=1) .
+END IF .
+XECUTE .
+
+DO IF (AApobre = 1 & vehi = 0) .
+RECODE
+AApobre (1=0) .
+END IF .
+EXECUTE .
+
+****Filtros para eliminar pobres no válidos de fase 8****
+
+IF (SEG_SOC > 0 & SEG_SOC < 6) SEGURO = 1 .
+IF (FAM_ENTR >= 1 & FAM_ENTR <= 7) FAM_BIEN = 1 .
+
+IF ((SEGURO = 1 | FAM_BIEN = 1) & AAPOBRE = 1) ELIMIN = 1 .
+
+RECODE SEGURO FAM_BIEN ELIMIN (SYSMIS = 0) .
+
+DO IF (ELIMIN = 1) .
+RECODE
+AAPOBRE (1 = 0) .
+END IF .
+
+EXECUTE .
+
+FREQUENCIES
+VARIABLES=lp98 aapobre
+/ORDER= ANALYSIS .
+
+SAVE OUTFILE='e:\fase8\punteo\REG_40\reg40j_$$.sav'
+/COMPRESSED.
+
+248/284
+
+--- Page 249/284 ---
+

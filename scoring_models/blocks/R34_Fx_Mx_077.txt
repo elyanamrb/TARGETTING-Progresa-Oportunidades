@@ -1,0 +1,85 @@
+REGION 34
+
+IF(PISO1=     1      )      PISO_1=        -0.764  .
+IF(PISO1=     2      )      PISO_1=         1.057  .
+IF(PISO1=     3      )      PISO_1=         2.074  .
+IF(PARED1=    1      )      PARED_1=       -0.610  .
+IF(PARED1=    2      )      PARED_1=        0.792  .
+IF(PARED1=    3      )      PARED_1=       -0.876  .
+IF(PARED1=    4      )      PARED_1=       -0.761  .
+IF(PARED1=    5      )      PARED_1=       -0.831  .
+IF(PARED1=    6      )      PARED_1=        0.450  .
+IF(PARED1=    7      )      PARED_1=       -0.773  .
+
+218/284
+
+--- Page 219/284 ---
+
+IF(PARED1=    8      )      PARED_1=       -0.233  .
+IF(PARED1=    9      )      PARED_1=       -3.938  .
+IF(PARED1=   10      )      PARED_1=        0.539  .
+IF(PARED1=   11      )      PARED_1=       -0.069  .
+IF(PARED1=   12      )      PARED_1=       -0.007  .
+IF(PARED1=   13      )      PARED_1=       11.624  .
+IF(AGUABA1=   1      )      AGUABA_1=      -0.033  .
+IF(AGUABA1=   2      )      AGUABA_1=      -0.866  .
+IF(AGUABA1=   3      )      AGUABA_1=      -0.095  .
+IF(AGUABA1=   4      )      AGUABA_1=       0.934  .
+IF(AGUABA1=   5      )      AGUABA_1=      -0.177  .
+IF(AGUABA1=   6      )      AGUABA_1=       1.280  .
+IF(AGUABA1=   7      )      AGUABA_1=       2.115  .
+IF(AGUABA1=   8      )      AGUABA_1=       3.233  .
+IF(OCUPJ1=    0      )      OCUPJ_1=        0.299  .
+IF(OCUPJ1=    1      )      OCUPJ_1=       -0.939  .
+IF(OCUPJ1=    2      )      OCUPJ_1=        0.850  .
+IF(OCUPJ1=    3      )      OCUPJ_1=        0.622  .
+IF(OCUPJ1=    4      )      OCUPJ_1=       -0.299  .
+IF(OCUPJ1=    5      )      OCUPJ_1=        2.056  .
+IF(OCUPJ1=    6      )      OCUPJ_1=        0.878  .
+IF(OCUPJ1=    7      )      OCUPJ_1=       -1.623  .
+IF(OCUPJ1=    8      )      OCUPJ_1=        1.879  .
+IF(OCUPJ1=    9      )      OCUPJ_1=        1.560  .
+IF(AGUA1=     1      )      AGUA_1=         0.321  .
+IF(AGUA1=     2      )      AGUA_1=        -0.658  .
+IF(AGUA1=     3      )      AGUA_1=         2.386  .
+IF(BAO1=      1      )      BAO_1= -0.578  .
+IF(BAO1=      2      )      BAO_1= 0.294   .
+IF(BAO1=      3      )      BAO_1= 2.963   .
+
+EXECUTE.
+
+***cálculo de medias para verificar tendencias
+
+IF (INMH15PC <= 409.3) LP98 = 1 .
+IF (INMH15PC > 409.3) LP98 = 0 .
+
+EXECUTE.
+
+SAVE OUTFILE='e:\Fase8\punteo\REG_34\REG34J_25.sav'
+/COMPRESSED.
+
+MEANS
+TABLES=lp98  BY piso1 pared1 aguaba1 ocupj agua1 bao1
+/CELLS MEAN .
+
+***análisis de discriminante
+
+DISCRIMINANT
+/GROUPS=lp98(0 1)
+/VARIABLES=depen ninos trab151 hacina esc  discap  piso_1
+radio tv licua aguaba_1  estgas vehi
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS = 42 .58
+/STATISTICS=RAW TABLE
+/CLASSIFY=NONMISSING POOLED .
+
+219/284
+
+--- Page 220/284 ---
+
+********************************************************************************
+***************************Programa para calcular los hogares beneficiarios de la OCTAVA FASE del programa**************
+********************************************************************************
+
+*****                       DE LA 

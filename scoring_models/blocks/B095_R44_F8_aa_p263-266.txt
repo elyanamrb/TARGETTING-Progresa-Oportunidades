@@ -1,0 +1,271 @@
+--- Page 263/284 ---
+
+*/*PUNTAJE DE LA REGIÓN 44
+*/* FASE 8
+*/*MODELO AA
+
+DISCRIMINANT
+/GROUPS=lp98(0 1)
+/VARIABLES= depen ninos vhs refri ocupj_1 vehi lengua mu15a49 radio trab151 estgas noasi1 hectie1 tv pared_1 discap agua_1
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS .42 .58
+/STATISTICS=RAW TABLE
+/CLASSIFY=NONMISSING POOLED .
+
+***puntajes
+
+IF (PERCEP = 0) DEPEN = 99 .
+RECODE DEPEN (99 = SYSMIS) .
+
+COMPUTE aaDEPEN = -36*DEPEN .
+COMPUTE aaNINOS = -16*NINOS .
+COMPUTE aaOCUPJ = 24*OCUPJ_1 .
+COMPUTE aaMU15A = -3*MU15A49 .
+COMPUTE aaTRAB = -48*TRAB151 .
+COMPUTE aaNOASI = -22*NOASI1 .
+COMPUTE aaHECTIE = 26*HECTIE1 .
+COMPUTE aaPARED = -7*PARED_1 .
+COMPUTE aaAGUA = 10*AGUA_1 .
+
+IF (VHS = 0) aaVHS = 100 .
+IF (VHS = 1) aaVHS = 72 .
+
+IF (REFRI = 0) aaREFRI = 100 .
+IF (REFRI = 1) aaREFRI = 88 .
+
+IF (VEHI = 0) aaVEHI = 100
+IF (VEHI = 1) aaVEHI = 70 .
+
+IF (LENGUA = 0) aaLENGUA = 100 .
+IF (LENGUA = 1) aaLENGUA = 82 .
+
+IF (RADIO = 0) aaRADIO = 100 .
+IF (RADIO = 1) aaRADIO = 81 .
+
+IF (ESTGAS = 0) aaESTGAS = 100 .
+IF (ESTGAS = 1) aaESTGAS = 89 .
+
+IF (TV = 0) aaTV = 100 .
+IF (TV = 1) aaTV = 90 .
+
+IF (DISCAP = 0) aaDISCAP = 100 .
+IF (DISCAP = 1) aaDISCAP = 72 .
+
+EXECUTE.
+
+***calcular las medias de las variables para imputar a valores perdidos
+
+FREQUENCIES
+VARIABLES= aadepen aaninos aaocupj aamu15a aatrab aanoasi aahectie aapared aaagua
+aavhs aarefri aavehi aalengua aaradio aaestgas aatv aadiscap
+/FORMAT=NOTABLE
+/STATISTICS=MEAN
+
+COMPUTE aainput = 0 .
+EXECUTE .
+DO IF (MISSING(aadepen) | MISSING(aaninos) | MISSING (aaocupj)| MISSING (aamu15a)| MISSING (aatrab)
+| MISSING(aanoasi) | MISSING(aahectie) | MISSING (aapared) | MISSING(aaagua) | MISSING (aavhs)
+| MISSING(aarefri) | MISSING (aavehi)| MISSING(aalengua) | MISSING (aaradio) MISSING(aaestgas) | MISSING(aatv)
+| MISSING(aadiscap)) .
+RECODE
+aainput (0=1) .
+END IF .
+EXECUTE .
+
+***se recodifican los valores perdidos con las medias de las variables
+
+RECODE aadepen (SYSMIS = -103.0711) .
+RECODE aaninos (SYSMIS = -27.5873) .
+RECODE aaocupj (SYSMIS = 0.2528) .
+RECODE aamu15a (SYSMIS = -3.4046) .
+RECODE aatrab (SYSMIS = -3.6698) .
+RECODE aanoasi (SYSMIS = -3.2987) .
+
+--- Page 264/284 ---
+
+RECODE aahectie (SYSMIS = 47.4134) .
+RECODE aapared (SYSMIS = -0.6674) .
+RECODE aaagua (SYSMIS = -0.4117) .
+RECODE aavhs (SYSMIS = 75.7085) .
+RECODE aarefri (SYSMIS = 91.1743) .
+RECODE aavehi (SYSMIS = 72.8078) .
+RECODE aalengua (SYSMIS = 97.6958) .
+RECODE aaradio (SYSMIS = 95.1461) .
+RECODE aaestgas (SYSMIS = 93.9760) .
+RECODE aatv (SYSMIS = 96.7148) .
+RECODE aadiscap (SYSMIS = 98.7448) .
+
+***se hace la calificación
+
+COMPUTE aacalif = aadepen + aaninos + aaocupj + aamu15a + aatrab + aanoasi + aahectie + aapared + aaagua +
+aavhs + aarefri + aavehi + aalengua + aaradio + aaestgas + aatv + aadiscap .
+EXECUTE .
+
+***discriminante con la linea de pobreza
+
+DISCRIMINANT
+/GROUPS=LP98(0 1)
+/VARIABLES=aacalif
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS .42 .58
+/STATISTICS=raw TABLE crossvalid
+/CLASSIFY=NONMISSING POOLED .
+
+USE ALL.
+COMPUTE filter_$=(dis_2 = 0).
+VARIABLE LABEL filter_$ 'dis_2 = 0 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+VARIABLES=aacalif
+/FORMAT=NOTABLE
+/STATISTICS=MINIMUM .
+
+USE ALL.
+COMPUTE filter_$=(dis_2 = 1).
+VARIABLE LABEL filter_$ 'dis_2 = 1 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+VARIABLES=aacalif
+/FORMAT=NOTABLE
+/STATISTICS= MAXIMUM .
+
+FILTER OFF.
+USE ALL.
+EXECUTE .
+
+***se determin
+a la linea de corte y se obtienen los pobres
+
+IF ((EJ<= 24 & totper <= 4) | (EJ >= 65 & totper <= 2)) viejitos = -100.
+recode viejitos (SYSMIS = 0) .
+EXECUTE .
+
+COMPUTE aacalif1 = aacalif + viejitos .
+EXECUTE .
+
+COMPUTE aapobre= 0 .
+EXECUTE .
+DO IF (aacalif1< 778.235) .
+RECODE
+aapobre (0=1) .
+END IF .
+EXECUTE .
+
+***** Recodificación por vehículo
+
+DO IF (vehi = 0 & aapobre = 1) .
+RECODE
+
+--- Page 265/284 ---
+
+aapobre (1=0) .
+END IF .
+EXECUTE .
+
+******Filtro de seguridad social y ultima pregunta del cuestionario
+
+IF (SEG_SOC > 0 & SEG_SOC ≤ 6) SEGURO = 1 .
+IF (FAM_ENTR >= 1 & FAM_ENTR <= 7) FAM_BIEN = 1 .
+IF (SEGURO = 1 | FAM_BIEN = 1) & AAPOBRE = 1) ELIMIN = 1 .
+RECODE SEGURO FAM_BIEN ELIMIN (SYSMIS = 0) .
+IF (ELIMIN = 1) AAPOBRE = 0 .
+EXECUTE .
+
+FREQUENCIES
+VARIABLES= aapobre lp98 .
+
+--- Page 266/284 ---
+
+*** PUNTAJES DE L A REGION 44
+*/* FASE 4A C
+*/* MODELO AA
+
+DISCRIMINANT
+/GROUPS=lp98(0 1)
+/VARIABLES= depen ninos vhs refri ocupj_1 vehi lengua mu15a49 radio trab151 estgas noasi1 hecite1 tv pared__1 discap agua_1
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS .42 .58
+/STATISTICS=RAW TABLE
+/CLASSIFY=NONMISSING POOLED .
+
+***puntajes
+
+COMPUTE AADEPEN = -38*DEPEN .
+COMPUTE AANINOS = 16*NINOS .
+COMPUTE AAOCUPJ = 24*OCUPJ_1 .
+COMPUTE AAMU15A = 33*MU15A49 .
+COMPUTE AATRAB = -48*TRAB151 .
+COMPUTE AANOASI = -28*NOASI1 .
+COMPUTE AAHECITE = 26*HECITE1 .
+COMPUTE AAPARED = 7*PARED_1 .
+COMPUTE AAAGUA = 10*AGUA_1 .
+
+IF (VHS = 0) AAVHS = 100 .
+IF (VHS = 1) AAVHS = 72 .
+
+IF (REFRI = 0) AAREFRI = 100 .
+IF (REFRI = 1) AAREFRI = 88 .
+
+IF (VEHI = 0) AAVEHI = 100 .
+IF (VEHI = 1) AAVEHI = 70 .
+
+IF (LENGUA = 0) AALENGUA = 100 .
+IF (LENGUA = 1) AALENGUA = 82 .
+
+IF (RADIO = 0) AARADIO = 100 .
+IF (RADIO = 1) AARADIO = 81 .
+
+IF (ESTGAS = 0) AAESTGAS = 100 .
+IF (ESTGAS = 1) AAESTGAS = 89 .
+
+IF (TV = 0) AATV = 100 .
+IF (TV = 1) AATV = 90 .
+
+IF (DISCAP = 0) AADISCAP = 100 .
+IF (DISCAP = 1) AADISCAP = 72 .
+
+EXECUTE.
+
+***calcular las medias de las variables para imputar a valores perdidos
+
+FREQUENCIES
+VARIABLES= aadepen aaninos aaocupj aamu15a aatrab aanoasi aahecite aapared aaagua
+aavhs aarefri aavehi aalengua aaradio aaestgas aatv aadiscap
+/FORMAT=NOTABLE
+/STATISTICS=MEAN .
+
+COMPUTE aainput = 0 .
+EXECUTE .
+DO IF (MISSING(aadepen) | MISSING(aaninos) | MISSING (aaocupj)| MISSING (aamu15a)| MISSING (aatrab)
+| MISSING(aanoasi) | MISSING (aahecite) | MISSING (aapared) | MISSING(aaagua) | MISSING (aavhs)
+| MISSING(aarefri) | MISSING (aavehi)| MISSING(aalengua) | MISSING (aaradio)| MISSING(aaestgas) |MISSING(aatv)
+|MISSING(aadiscap)) .
+RECODE
+aainput (0=1) .
+END IF .
+EXECUTE .
+
+***se recodifican los valores perdidos con las medias de las variables
+
+RECODE aadepen (SYSMIS = -106.69) .
+RECODE aaninos (SYSMIS = -23.86) .
+RECODE aaocupj (SYSMIS = 25.84) .
+RECODE aamu15a (SYSMIS = -3.1) .
+RECODE aatrab (SYSMIS = -1.96) .
+RECODE aanoasi (SYSMIS = -3.06) .
+RECODE aahecite (SYSMIS = 66.69) .
+RECODE aapared (SYSMIS = 2.4) .
+RECODE aaagua (SYSMIS = -5.18) .
+                                                                                                                                            266/284
+

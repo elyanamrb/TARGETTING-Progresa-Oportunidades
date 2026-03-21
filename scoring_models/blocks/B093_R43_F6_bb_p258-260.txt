@@ -1,0 +1,155 @@
+--- Page 258/284 ---
+
+REGIÓN 43. NORTE (JALISCO)
+FASE 6
+MODELO bb
+
+
+DISCRIMINANT
+/GROUPS=lp98(0 1)
+/VARIABLES= depen ninos vhs ocupj_1 esc lava piso_1 mu15a49 radio aguaba_1 noasi1 pared_1
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS .41 .59
+/STATISTICS=RAW TABLE
+/CLASSIFY=NONMISSING POOLED .
+
+COMPUTE bbDEPEN = -36*DEPEN .
+COMPUTE bbNINOS = -20*NINOS .
+COMPUTE bbOCUPJ = -98*OCUPJ_1 .
+COMPUTE bbESC = 6*ESC .
+COMPUTE bbPISO = -21*PISO_1 .
+COMPUTE bbMU15A = 7*MU15A49 .
+COMPUTE bbAGUABA = -4*AGUABA_1 .
+COMPUTE bbNOASI = -14*NOASI1 .
+COMPUTE bbPARED = -5*PARED_1 .
+
+IF (VHS = 0) bbVHS = 100 .
+IF (VHS = 1) bbVHS = 90 .
+
+IF (LAVA = 0) bbLAVA = 100 .
+IF (LAVA = 1) bbLAVA = 88.
+
+IF (RADIO = 0) bbRADIO = 100 .
+IF (RADIO = 1) bbRADIO = 98.
+
+EXECUTE.
+
+FREQUENCIES
+  VARIABLES= bbdepen bbninos bbocupj bbesc bbpiso bbmu15a bbaguaba bbnoasi
+            bbpared bbvhs bblava bbradio
+  /FORMAT=NOTABLE
+  /STATISTICS=MEAN .
+
+COMPUTE bbinput = 0 .
+EXECUTE .
+DO IF (MISSING(bbdepen) | MISSING(bbninos) | MISSING (bbocupj)| MISSING (bbesc)
+      | MISSING (bbpiso) | MISSING(bbmu15a) | MISSING(bbaguaba) | MISSING (bbnoasi)
+      | MISSING (bbpared) | MISSING(bbvhs) | MISSING(bblava) | MISSING (bbradio)) .
+RECODE
+  bbinput (0=1) .
+END IF .
+EXECUTE .
+
+RECODE bbdepen (SYSMIS = -100.1224) .
+RECODE bbninos (SYSMIS = -30.7774) .
+RECODE bbocupj (SYSMIS =-28.0132) .
+RECODE bbesc (SYSMIS = 16.5849) .
+RECODE bbpiso (SYSMIS = 4.5644) .
+RECODE bbmu15a (SYSMIS = 8.7170) .
+RECODE bbaguaba (SYSMIS = -2.6348) .
+RECODE bbnoasi (SYSMIS = -1.7060) .
+RECODE bbpared (SYSMIS = 1.2599) .
+RECODE bbvhs (SYSMIS = 92.0755) .
+RECODE bblava (SYSMIS = 92.6415) .
+RECODE bbradio (SYSMIS = 99.6952) .
+
+COMPUTE bbcalif = bbdepen + bbninos + bbocupj + bbesc + bbpiso + bbmu15a + bbaguaba + bbnoasi
+                + bbpared + bbvhs + bblava + bbradio .
+EXECUTE .
+
+DISCRIMINANT
+/GROUPS=LP98(0 1)
+/VARIABLES=bbcalif                                          258/284
+
+--- Page 259/284 ---
+
+/ANALYSIS ALL
+/SAVE=CLASS
+/PRIORS .42 .58
+/STATISTICS=raw TABLE crossvalid
+/CLASSIFY=NONMISSING POOLED .
+
+USE ALL.
+COMPUTE filter_$=(dis_2 = 0).
+VARIABLE LABEL filter_$ 'dis_2 = 0 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+  VARIABLES=bbcalif
+  /FORMAT=NOTABLE
+  /STATISTICS=MINIMUM .
+
+USE ALL.
+COMPUTE filter_$=(dis_2 = 1).
+VARIABLE LABEL filter_$ 'dis_2 = 1 (FILTER)'.
+VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
+FORMAT filter_$ (f1.0).
+FILTER BY filter_$.
+EXECUTE .
+
+FREQUENCIES
+  VARIABLES=bbcalif
+  /FORMAT=NOTABLE
+  /STATISTICS= MAXIMUM .
+
+FILTER OFF.
+USE ALL.
+EXECUTE .
+
+IF ((EJ<= 24 & totper <= 4) | (EJ >= 65 & totper <= 2)) viejitos = -100.
+  recode viejitos (SYSMIS = 0) .
+EXECUTE .
+
+COMPUTE bbcalif = bbcalif + viejitos .
+EXECUTE .
+
+COMPUTE bbpobre= 0 .
+EXECUTE .
+DO IF (bbcalif< 247.20) .
+RECODE
+  bbpobre (0=1) .
+END IF .
+EXECUTE .
+
+FREQUENCIES
+  VARIABLES=lp98 bbpobre .
+
+IF(AAPOBRE=0 & BBPOBRE=1) NVO_POB=1 .
+RECODE NVO_POB (SYSMIS=0) .
+EXECUTE .
+
+IF ((ULT_NIV=4 | ULT_NIV=6 | ULT_NIV=7) & SEG_SOC=2) MAESTRO=1 .
+
+DO IF (MAESTRO=1) .
+RECODE
+  NVO_POB (1=0) .
+END IF .
+EXECUTE .
+
+259/284
+
+--- Page 260/284 ---
+
+REGIÓN 43. NORTE (JALISCO)
+FASE 6
+Modelo bb
+
+
+Entrega 25 no se aplicó filtro de MAESTRO.
+
+260/284
+
